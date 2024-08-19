@@ -2,19 +2,21 @@
 namespace App\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Faker\Factory;
 
 class UserControllerTest extends WebTestCase
 {
     // Test case to add a new user via API
     public function testAddNewUser()
     {
+        $faker = Factory::create();
         $client = static::createClient();
         // Send a POST request to create a new user
         $client->request('POST', '/user', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
-            'name' => 'Test User',
-            'email' => 'testuser@example.com',
+            'name' => $faker->name(),
+            'email' => $faker->email(),
             'role' => 'Member',
-            'password' => 'securepassword@123',
+            'password' => $faker->password(),
             'created_at'=>new \DateTimeImmutable('now'),
             'updated_at'=>new \DateTimeImmutable('now')
         ]));
@@ -28,13 +30,14 @@ class UserControllerTest extends WebTestCase
     // Test case to edit an existing user via API
     public function testEditUser()
     {
+        $faker = Factory::create();
         $client = static::createClient();
         // Send a PUT request to update details of the user with ID 1
         $client->request('PUT', '/user/1', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
-            'name' => 'Updated Test User',
-            'email' => 'updatedtestuser@example.com',
+            'name' => $faker->name(),
+            'email' => $faker->email(),
             'role' => 'Admin',
-            'password' => 'newsecurepassword',
+            'password' => $faker->password(),
             'created_at'=>new \DateTimeImmutable('now'),
             'updated_at'=>new \DateTimeImmutable('now')
         ]));
@@ -104,7 +107,7 @@ class UserControllerTest extends WebTestCase
         $client = static::createClient();
         
         // Send a POST request to the /borrows endpoint with the borrow ID
-        $client->request('POST', '/borrow/return/1', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/borrow/return/4', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'returnDate' => '2023-07-10'
         ]));
         // Assert that the response status code is 200

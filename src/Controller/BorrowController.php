@@ -36,6 +36,6 @@ class BorrowController extends AbstractController
         return $this->json([
             'status' => 'success',
             'data' => $responseData
-        ]);
+        ],JsonResponse::HTTP_OK);
     }
 }

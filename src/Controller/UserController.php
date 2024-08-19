@@ -46,7 +46,8 @@ class UserController extends AbstractController
                 'message' => 'Please provide all required data'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
-        $createdAt=new \DateTimeImmutable('now');
+        $dateTimeImmutable = new \DateTimeImmutable('now');
+        $createdAt=new \DateTime($dateTimeImmutable->format('Y-m-d H:i:s'));
         $password = password_hash($data['password'], PASSWORD_BCRYPT);
         try{
         $user = $this->userService->createUser($data['name'],$data['email'],$password,$data['role'],$createdAt);
@@ -64,7 +65,7 @@ class UserController extends AbstractController
                 throw new \Exception("User Already Exist");
             }
         }catch (\Exception $e) {
-            return new JsonResponse(["message"=>"Unexpected Error:".$e->getMessage()],JsonResponse::HTTP_OK);
+            return new JsonResponse(["message"=>"Unexpected Error:".$e->getMessage()],JsonResponse::HTTP_BAD_REQUEST);
         }
         try {
             $role = Role::from($data['role']);
@@ -80,7 +81,7 @@ class UserController extends AbstractController
             return new JsonResponse([
                 'status' => 'success',
                 'message' => 'User created successfully'
-            ], JsonResponse::HTTP_OK);
+            ], JsonResponse::HTTP_CREATED);
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
@@ -89,6 +90,7 @@ class UserController extends AbstractController
         }
         
     }
+
     #[Route('/user/{id}',methods:["PUT"])]
     public function updateUser(Request $request,int $id): JsonResponse
     {
@@ -100,7 +102,7 @@ class UserController extends AbstractController
             throw new \Exception("User not found");
         }
         } catch (\Exception $e){
-            return new JsonResponse(["message"=>"Unexpected Error:".$e->getMessage()],JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(["message"=>"Unexpected Error:".$e->getMessage()],JsonResponse::HTTP_NOT_FOUND);
         }
         if (!isset($data['name'], $data['email'], $data['role'], $data['password'])) {
             return new JsonResponse([
@@ -108,7 +110,6 @@ class UserController extends AbstractController
                 'message'=>'Please Input all values'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
-        
 
         try {
             $role = Role::from($data['role']);
@@ -133,7 +134,7 @@ class UserController extends AbstractController
                 "status"=>"success",
                 "message"=>"User Updated Successfully"
             ],JsonResponse::HTTP_CREATED);
-        }catch(\Exception $e){
+        } catch(\Exception $e) {
             return new JsonResponse([
                 "status"=>"error",
                 "message"=>$e->getMessage()
