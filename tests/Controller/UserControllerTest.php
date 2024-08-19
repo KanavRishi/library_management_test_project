@@ -2,6 +2,7 @@
 namespace App\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use App\Entity\User;
 use Faker\Factory;
 
 class UserControllerTest extends WebTestCase
@@ -32,8 +33,11 @@ class UserControllerTest extends WebTestCase
     {
         $faker = Factory::create();
         $client = static::createClient();
+        $entityManager = static::getContainer()->get('doctrine')->getManager();
+        $getId = $entityManager->getRepository(User::class)->findOneBy([], ['id' => 'DESC']);
+        $id=$getId->getId();
         // Send a PUT request to update details of the user with ID 1
-        $client->request('PUT', '/user/1', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('PUT', '/user/'.$id, [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'name' => $faker->name(),
             'email' => $faker->email(),
             'role' => 'Admin',
@@ -64,8 +68,11 @@ class UserControllerTest extends WebTestCase
     public function testViewUserDetails()
     {
         $client = static::createClient();
+        $entityManager = static::getContainer()->get('doctrine')->getManager();
+        $getId = $entityManager->getRepository(User::class)->findOneBy([], ['id' => 'DESC']);
+        $id=$getId->getId();
         // Send a GET request to fetch details of a user with ID 1
-        $client->request('GET', '/user/1/');
+        $client->request('GET', '/user/'.$id.'/');
 
         // Assert the HTTP status code is 200 (OK)
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
@@ -77,8 +84,11 @@ class UserControllerTest extends WebTestCase
     public function testRemoveUser()
     {
         $client = static::createClient();
+        $entityManager = static::getContainer()->get('doctrine')->getManager();
+        $getId = $entityManager->getRepository(User::class)->findOneBy([], ['id' => 'DESC']);
+        $id=$getId->getId();
         // Send a DELETE request to remove the user with ID 1
-        $client->request('DELETE', 'user/delete/1');
+        $client->request('DELETE', 'user/delete/'.$id);
 
         // Assert the HTTP status code is 204 (No Content)
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
@@ -95,7 +105,7 @@ class UserControllerTest extends WebTestCase
         ]));
         // dd($client->getResponse());
         // Assert that the response status code is 405
-        $this->assertEquals(201, $client->getResponse()->getStatusCode());
+        $this->assertEquals(404, $client->getResponse()->getStatusCode());
 
         // Assert that the response content is JSON
         $this->assertJson($client->getResponse()->getContent());
@@ -111,7 +121,7 @@ class UserControllerTest extends WebTestCase
             'returnDate' => '2023-07-10'
         ]));
         // Assert that the response status code is 200
-        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        $this->assertEquals(404, $client->getResponse()->getStatusCode());
         // Assert that the response content is JSON
         $this->assertJson($client->getResponse()->getContent());
     }

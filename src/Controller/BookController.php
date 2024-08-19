@@ -44,15 +44,6 @@ class BookController extends AbstractController
         if (!$publishedDate) {
             throw new \InvalidArgumentException('Invalid date format. Expected format: Y-m-d');
         }
-        // Validate ISBN Length
-        
-        // $isbn = preg_replace('/\D/', '', $data['isbn']);
-        // if (strlen($isbn)!=10 && strlen($isbn)!=13) {
-        //     return new JsonResponse([
-        //         'status' => 'error',
-        //         'message' => 'Invalid ISBN. It must be either 10 or 13 digits long.'
-        //     ], JsonResponse::HTTP_BAD_REQUEST);
-        // }
         
         if(isset($data['title']) && isset($data['author']) && isset($data['isbn']) && isset($publishedDate))
         {
