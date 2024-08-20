@@ -60,7 +60,7 @@ class User
         return $this->id;
     }
 
-    public function getName(): ?Name
+    public function getName(): ?string
     {
         return $this->name;
     }
@@ -72,7 +72,7 @@ class User
         return $this;
     }
 
-    public function getEmail(): ?Email
+    public function getEmail(): ?string
     {
         return $this->email;
     }

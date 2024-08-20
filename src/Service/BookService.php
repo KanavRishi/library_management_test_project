@@ -38,6 +38,7 @@ class BookService
  
     public function saveBook(Book $book): bool
     {   
+        // dd($book);
         $violations = $this->validator->validate($book);
         // echo count($violations);
         if (count($violations) > 0) {
@@ -56,29 +57,26 @@ class BookService
 
     public function listBooks(): array
     {
-        return $this->bookRepository->findAll();
+        return $this->bookRepository->createQueryBuilder('b')
+        ->where('b.status != :deletedStatus')
+        ->setParameter('deletedStatus', 'deleted')
+        ->getQuery()
+        ->getResult();
     }
 
     public function getBookById(int $id): ?Book
     {
-        $book = $this->bookRepository->findOneBy(['id'=>$id,'deletionStatus'=>'active']);
+        $book = $this->bookRepository->createQueryBuilder('b')
+        ->where('b.id = :id')
+        ->andWhere('b.status != :activeStatus')
+        ->setParameter('id', $id)
+        ->setParameter('activeStatus', 'deleted')
+        ->getQuery()
+        ->getOneOrNullResult();
         if (!$book) {
             return null;
         }
         return $book;
-    }
-    
-    public function deleteBook(int $id): bool
-    {
-        $book=$this->bookRepository->find($id);
-        // dd($book);
-        if(!$book)
-        {
-            return false;
-        }
-        $this->entityManager->remove($book);
-        $this->entityManager->flush();
-        return true;
     }
 
     public function updateBook(int $id,array $data): Book
@@ -125,10 +123,13 @@ class BookService
             throw new ValidatorException(implode(', ', $errors));
         }
     }
-    public function changeBookStatus(Book $book)
+    public function changeBookStatus(Book $book): bool
     {
+        // dd($book);
+        $book->setStatus(Status::from('available'));
         $this->entityManager->persist($book);
         $this->entityManager->flush();
+        return true;
     }
     
 }

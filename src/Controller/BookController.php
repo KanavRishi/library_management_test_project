@@ -9,18 +9,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\BorrowRepository;
-use App\Entity\Borrow;
 use App\ValueObject\Isbn;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use App\Entity\Book;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use App\Service\UserService;
 use App\Service\BookService;
 use App\Service\BorrowService;
 use Psr\Log\LoggerInterface;
 use App\Enum\DeletionStatus;
-use Doctrine\DBAL\Exception\ConstraintViolationException;
-use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 
 class BookController extends AbstractController
@@ -44,6 +40,7 @@ class BookController extends AbstractController
     public function addBook(Request $request, ValidatorInterface $validator): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+        // dd($data);
         $publishedDate = \DateTime::createFromFormat('Y-m-d', $data['publisheddate']);
 
         if (!$publishedDate) {
@@ -130,17 +127,8 @@ class BookController extends AbstractController
     #[Route('/book/{id}', methods: ['PUT'], name: 'update_book')]
     public function updateBook(Request $request, $id, ValidatorInterface $validator): JsonResponse
     {
-        if (!is_numeric($id) || intval($id) != $id) {
-            return new JsonResponse([
-                'status' => 'error',
-                'message' => 'Invalid ID. It must be an integer.'
-            ], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
         try {
-            $id = $id;
-            // dd($id);
-            if ($id <= 0) {
+            if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
                 throw new \InvalidArgumentException('Invalid ID provided.');
             }
     
@@ -255,11 +243,32 @@ class BookController extends AbstractController
     #[Route('/book/{id}/', methods: ['GET'])]
     public function getBookById(int $id): JsonResponse
     {
+
+        try {
+            if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
+                throw new \InvalidArgumentException('Invalid ID provided.');
+            }
+    
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+    
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
         $book = $this->bookService->getBookById($id);
 
         if (!$book) {
             return $this->json(['status' => 'Book not Found'], Response::HTTP_NOT_FOUND);
         }
+        // dd($book);
+
         $responseData = [
             'status' => 'success',
             'data' => [
@@ -278,6 +287,23 @@ class BookController extends AbstractController
     {
 
         try {
+            if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
+                throw new \InvalidArgumentException('Invalid ID provided.');
+            }
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+    
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        try {
             $checkBook = $this->bookService->getBookById($id);
             if (empty($checkBook)) {
                 throw new \Exception("Book does not exist");
@@ -287,7 +313,8 @@ class BookController extends AbstractController
         }
 
         $book = $this->bookService->getBookById($id);
-        $book->setDeletionStatus(DeletionStatus::DELETED);
+        // $book->setDeletionStatus(DeletionStatus::DELETED);
+        $book->setStatus(Status::DELETED);
 
         try {
             $this->bookService->saveBook($book);

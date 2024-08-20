@@ -6,5 +6,6 @@ enum Status: string
 {
     case AVAILABLE = 'available';
     case BORROWED = 'borrowed';
+    case DELETED = 'deleted';
 }
 ?>

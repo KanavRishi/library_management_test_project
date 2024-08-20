@@ -83,8 +83,24 @@ class UserController extends AbstractController
     }
     // Update User
     #[Route('/user/{id}', methods: ["PUT"])]
-    public function updateUser(Request $request, int $id): JsonResponse
+    public function updateUser(Request $request, $id): JsonResponse
     {
+        try {
+            if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
+                throw new \InvalidArgumentException('Invalid ID provided.');
+            }
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
         $data = json_decode($request->getContent(), true);
         try {
             $user = $this->userService->getUserById($id);
@@ -163,8 +179,24 @@ class UserController extends AbstractController
     }
 
     #[Route('/user/{id}/', methods: ['GET'])]
-    public function getUserById(int $id): JsonResponse
+    public function getUserById($id): JsonResponse
     {
+        try {
+            if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
+                throw new \InvalidArgumentException('Invalid ID provided.');
+            }
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
         $user = $this->userService->getUserById($id);
 
         try {
@@ -174,6 +206,7 @@ class UserController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
+        // dd($user);
         $responseData = [
             'status' => 'success',
             'data' => [
@@ -189,6 +222,24 @@ class UserController extends AbstractController
     #[Route('/user/delete/{id}', methods: ['DELETE'])]
     public function deleteUser(int $id): JsonResponse
     {
+
+        try {
+            if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
+                throw new \InvalidArgumentException('Invalid ID provided.');
+            }
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+
         try {
             $checkUser = $this->userService->getUserById($id);
             if (empty($checkUser)) {
@@ -218,7 +269,27 @@ class UserController extends AbstractController
     #[Route('/borrow', methods: ['PUT'])]
     public function borrowWhenAvailable(Request $request): JsonResponse
     {
+
         $data = json_decode($request->getContent(), true);
+
+        try {
+            if (!is_numeric($data['userid']) || intval($data['userid']) != $data['userid'] || $data['userid'] <= 0) {
+                throw new \InvalidArgumentException('Invalid User ID provided.');
+            }
+            if (!is_numeric($data['bookid']) || intval($data['bookid']) != $data['bookid'] || $data['bookid'] <= 0) {
+                throw new \InvalidArgumentException('Invalid Book ID provided.');
+            }
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
 
         try {
             $book = $this->bookService->getBookById($data['bookid']);
@@ -229,6 +300,7 @@ class UserController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         }
+
         try {
             $user = $this->userService->getUserById($data['userid']);
             if (!$user) {
@@ -248,14 +320,8 @@ class UserController extends AbstractController
 
         $book_stat = $this->bookService->updateBookStatus($book);
         if ($book_stat) {
-            $user = $this->userService->getUserById($data['userid']);
-            $book = $this->bookService->getBookById($data['bookid']);
-            $borrow = new Borrow();
-            $borrow->setUserid($user);
-            $borrow->setBookid($book);
-            $borrow->setBorrowDate((new \DateTimeImmutable('now')));
 
-            $check = $this->borrowService->borrowBook($borrow);
+            $check = $this->borrowService->borrowBook($data);
             if ($check) {
                 return new JsonResponse([
                     "status" => "Book Borrowed Successfully"
@@ -267,6 +333,22 @@ class UserController extends AbstractController
     #[Route('/borrow/return/{id}', methods: ['POST'], name: 'return_book')]
     public function returnBook(int $id): JsonResponse
     {
+        try {
+            if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
+                throw new \InvalidArgumentException('Invalid User ID provided.');
+            }
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
         try {
             $borrow = $this->borrowRepository->find($id);
             if (!$borrow) {
@@ -281,13 +363,32 @@ class UserController extends AbstractController
 
 
         $this->borrowService->returnBook($borrow);
-        $getBookId = $this->bookService->getBookById($borrow->getBookid()->getId());
-        $getBookId->setStatus(Status::from('available'));
-        $changeStatus = $this->bookService->changeBookStatus($getBookId);
-
-        return new JsonResponse([
-            'status' => 'success',
-            'message' => 'Book returned successfully'
-        ]);
+        try {
+            $getBookId = $this->bookService->getBookById($borrow->getBookid()->getId());
+            if (!($getBookId)) {
+                throw new \Exception("Book Not Found");
+            }
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        // dd($getBookId);
+        try {
+            $changeStatus = $this->bookService->changeBookStatus($getBookId);
+            if (!($changeStatus)) {
+                throw new \Exception("Book Not Found");
+            }
+            return new JsonResponse([
+                'status' => 'success',
+                'message' => "Book Returned Successfully"
+            ], JsonResponse::HTTP_OK);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'success',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 }

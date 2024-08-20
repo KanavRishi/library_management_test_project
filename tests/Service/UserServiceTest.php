@@ -39,13 +39,12 @@ class UserServiceTest extends TestCase
         $email = 'john.doe@example.com';
         $password = 'password';
         $role = 'Member';
-        $createdAt = new \DateTime();
 
-        $user = $this->userService->createUser($name, $email, $password, $role,$createdAt);
+        $user = $this->userService->createUser($name, $email, $password, $role);
         // dd($user);
         $this->assertInstanceOf(User::class, $user);
-        $this->assertEquals($name, $user->getName()->getValue());
-        $this->assertEquals($email, $user->getEmail()->getValue());
+        $this->assertEquals($name, $user->getName());
+        $this->assertEquals($email, $user->getEmail());
         $this->assertEquals($password, $user->getPassword());
         $this->assertEquals($role, $user->getRole()->value);
     }

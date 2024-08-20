@@ -5,6 +5,10 @@ use App\Repository\BorrowRepository;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Service\BorrowService;
 use App\Entity\Borrow;
+use App\Entity\User;
+use App\Entity\Book;
+use App\Service\UserService;
+use App\Service\BookService;
 use App\Enum\Status;
 class BorrowServiceTest extends TestCase
 {
@@ -12,34 +16,59 @@ class BorrowServiceTest extends TestCase
     private ValidatorInterface $validator;
     private BorrowRepository $borrowRepository;
     private BorrowService $borrowService;
+    private UserService $userService;
+    private BookService $bookService;
 
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->validator = $this->createMock(ValidatorInterface::class);
         $this->borrowRepository = $this->createMock(BorrowRepository::class);
+        $this->userService = $this->createMock(UserService::class);
+        $this->bookService = $this->createMock(bookService::class);
 
         $this->borrowService = new BorrowService(
             $this->entityManager,
             $this->validator,
-            $this->borrowRepository
+            $this->borrowRepository,
+            $this->userService,
+            $this->bookService
         );
     }
 
-    public function testBorrowBook()
+    public function testBorrowBook(): void
     {
+        $data = [
+            'userid' => 1,
+            'bookid' => 2,
+        ];
+
+        $user = $this->createMock(User::class);
+        $book = $this->createMock(Book::class);
         $borrow = $this->createMock(Borrow::class);
+
+        $this->userService
+            ->expects($this->once())
+            ->method('getUserById')
+            ->with($data['userid'])
+            ->willReturn($user);
+
+        $this->bookService
+            ->expects($this->once())
+            ->method('getBookById')
+            ->with($data['bookid'])
+            ->willReturn($book);
 
         $this->entityManager
             ->expects($this->once())
             ->method('persist')
-            ->with($borrow);
+            ->with($this->isInstanceOf(Borrow::class));
 
         $this->entityManager
             ->expects($this->once())
             ->method('flush');
 
-        $result = $this->borrowService->borrowBook($borrow);
+        $result = $this->borrowService->borrowBook($data);
 
         $this->assertTrue($result);
     }

@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class BookTest extends TestCase
 {
-    public function testGettersAndSetters()
+    public function testBookEntity()
     {
         // Initialize the required objects for the constructor
         $title = new Title("The Dark Knight");

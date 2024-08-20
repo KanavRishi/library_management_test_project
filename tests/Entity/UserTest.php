@@ -25,8 +25,8 @@ class UserTest extends TestCase
         $user = new User($name, $email, $password);
 
         // Test constructor values
-        $this->assertSame($name, $user->getName());
-        $this->assertSame($email, $user->getEmail());
+        $this->assertSame($name->getValue(), $user->getName());
+        $this->assertSame($email->getValue(), $user->getEmail());
         $this->assertSame($password, $user->getPassword());
         $this->assertSame($role, $user->getRole());
         $this->assertSame($deletionStatus, $user->getDeletionStatus());
