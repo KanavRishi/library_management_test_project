@@ -12,11 +12,14 @@ use App\Repository\BorrowRepository;
 use App\Entity\Borrow;
 use App\ValueObject\Isbn;
 use App\Entity\Book;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use App\Service\UserService;
 use App\Service\BookService;
 use App\Service\BorrowService;
 use Psr\Log\LoggerInterface;
 use App\Enum\DeletionStatus;
+use Doctrine\DBAL\Exception\ConstraintViolationException;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 
 class BookController extends AbstractController
@@ -38,93 +41,84 @@ class BookController extends AbstractController
 
     #[Route('/book',methods:['POST'], name: 'add_book')]
     public function addBook(Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(),true);
-        $publishedDate = \DateTime::createFromFormat('Y-m-d', $data['publisheddate']);
-        if (!$publishedDate) {
-            throw new \InvalidArgumentException('Invalid date format. Expected format: Y-m-d');
-        }
-        
-        if(isset($data['title']) && isset($data['author']) && isset($data['isbn']) && isset($publishedDate))
-        {
-            try {
-                $status = Status::from($data['status']);
-            } catch (\ValueError $e) {
-                return new JsonResponse([
-                    'status' => 'error',
-                    'message' => 'Invalid status value'
-                ], JsonResponse::HTTP_BAD_REQUEST);
-            }
-            try {
-                $isbnData = new Isbn($data['isbn']);
-            } catch (\Exception $e) {
-                return new JsonResponse([
-                    'error' => $e->getMessage(),
-                ], JsonResponse::HTTP_BAD_REQUEST);
-            }
-        try{
-            $duplBook=$this->bookService->checkDuplBook($isbnData);
-            if($duplBook)
-            {
-                throw new \Exception("Book Already Exist");
-            }
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'error' => $e->getMessage(),
-            ], JsonResponse::HTTP_CONFLICT);
-        }
-       $createdAt=new \DateTimeImmutable('now');
+{
+    $data = json_decode($request->getContent(), true);
+    $publishedDate = \DateTime::createFromFormat('Y-m-d', $data['publisheddate']);
+    
+    if (!$publishedDate) {
+        throw new \InvalidArgumentException('Invalid date format. Expected format: Y-m-d');
+    }
+    
+    if (isset($data['title'], $data['author'], $data['isbn'], $publishedDate)) {
         try {
-        $book = $this->bookService->createBook($data['author'],$data['title'],$data['isbn'],$data['status'],$publishedDate,$createdAt);
-        } catch (\InvalidArgumentException $e) {
+            $status = Status::from($data['status']);
+        } catch (\ValueError $e) {
             return new JsonResponse([
-                'error' => $e->getMessage(),
+                'status' => 'error',
+                'message' => 'Invalid status value'
             ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        try {
+            $isbnData = new Isbn($data['isbn']);
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
-       try{
-        $this->bookService->saveBook($book);
-        return new JsonResponse([
-            'status'=>'Success',
-            'message'=>'Book Added Successfully!!!'
-        ],JsonResponse::HTTP_CREATED);
-       } 
-       catch (\InvalidArgumentException $e) {
-        $this->logger->error('Invalid argument: ' . $e->getMessage());
 
+        $createdAt = new \DateTimeImmutable('now');
+
+        try {
+            $book = $this->bookService->createBook($data['author'], $data['title'], $data['isbn'], $data['status'], $publishedDate, $createdAt);
+            $this->bookService->saveBook($book);
+
+            return new JsonResponse([
+                'status' => 'success',
+                'message' => 'Book added successfully!'
+            ], JsonResponse::HTTP_CREATED);
+
+        } catch (ValidatorException $e) {
+            $this->logger->error('Validation error: ' . $e->getMessage());
+
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Validation failed.',
+                'errors' => json_decode($e->getMessage(), true)
+            ], JsonResponse::HTTP_BAD_REQUEST);
+
+        } catch (UniqueConstraintViolationException $e) {
+            $this->logger->error('Duplicate entry error: ' . $e->getMessage());
+        
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'A book with this ISBN already exists.'
+            ], JsonResponse::HTTP_CONFLICT); 
+
+        } catch (\InvalidArgumentException | \ValueError $e) {
+            $this->logger->error('Input error: ' . $e->getMessage());
+
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Invalid input: ' . $e->getMessage()
+            ], JsonResponse::HTTP_BAD_REQUEST);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Unexpected error: ' . $e->getMessage());
+
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage()
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+    } else {
         return new JsonResponse([
             'status' => 'error',
-            'message' => 'Invalid input data.'
+            'message' => 'Please provide all required data.'
         ], JsonResponse::HTTP_BAD_REQUEST);
-
-    } catch (\ValueError $e) {
-        // Log the error
-        $this->logger->error('Value error: ' . $e->getMessage());
-
-        return new JsonResponse([
-            'status' => 'error',
-            'message' => 'Invalid value provided.'
-        ], JsonResponse::HTTP_BAD_REQUEST);
-
-    } catch (\Exception $e) {
-        // Log the error
-        $this->logger->error('Unexpected error: ' . $e->getMessage());
-
-        return new JsonResponse([
-            'status' => 'error',
-            'message' => 'An unexpected error occurred. Please try again later.'
-        ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
     }
-    }else{
-        return new JsonResponse([
-            'status'=>'error',
-            'message'=>'Please Input all data'
-        ]);
-    }
-    }
+}
+
 
     // Update Book
     #[Route('/book/{id}', methods: ['PUT'], name: 'update_book')]
@@ -138,17 +132,17 @@ class BookController extends AbstractController
             }
         } catch (\Exception $e) {
             return new JsonResponse(["message"=>$e->getMessage()],JsonResponse::HTTP_NOT_FOUND);
-            
         }
        $data = json_decode($request->getContent(),true);
-        try{
+        try {
         $publishedDate = \DateTime::createFromFormat('Y-m-d', $data['publisheddate']);
         if (!$publishedDate) {
             throw new \InvalidArgumentException('Invalid date format. Expected format: Y-m-d');
         }
-        }catch(\InvalidArgumentException $e){
+        } catch (\InvalidArgumentException $e){
             return new JsonResponse(["message"=>"Unexpected Error:".$e->getMessage()],JsonResponse::HTTP_BAD_REQUEST);
         }
+        
         // Status Validation
         try {
             $status = Status::from($data['status']);
@@ -158,6 +152,7 @@ class BookController extends AbstractController
                 'message' => 'Invalid status value'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
+
         try {
             $book = $this->bookService->updateBook($id,$data);
         } catch (\Exception $e) {
@@ -174,7 +169,15 @@ class BookController extends AbstractController
                     'status' => 'error',
                     'message' => $e->getMessage()
                 ], JsonResponse::HTTP_BAD_REQUEST);
-            }
+        }  catch (UniqueConstraintViolationException $e) {
+            $this->logger->error('Duplicate entry error: ' . $e->getMessage());
+        
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'A book with this ISBN already exists.'
+            ], JsonResponse::HTTP_CONFLICT); 
+
+        }
             
        if (!isset($data['title'], $data['author'], $data['isbn'], $data['publisheddate'], $data['status'])) {
         return new JsonResponse([

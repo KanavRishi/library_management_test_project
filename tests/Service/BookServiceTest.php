@@ -49,7 +49,7 @@ class BookServiceTest extends TestCase
         $createdAt = new \DateTime();
 
         $book = $this->bookService->createBook($author, $title, $isbn, $status, $publishedDate, $createdAt);
-        // dd($book);
+        // dd($author);
 
         $this->assertInstanceOf(Book::class, $book);
         $this->assertEquals($author, $book->getAuthor());

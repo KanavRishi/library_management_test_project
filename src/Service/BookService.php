@@ -39,11 +39,15 @@ class BookService
     public function saveBook(Book $book): bool
     {   
         $violations = $this->validator->validate($book);
+        // echo count($violations);
         if (count($violations) > 0) {
             $errors = [];
             foreach ($violations as $violation) {
-                $errors[] = $violation->getMessage();
+                // $errors[] = $violation->getMessage();
+                $errorType = get_class($violation->getConstraint());
             }
+            dd($errorType);
+            // dd($errors);
             throw new ValidatorException(implode(', ', $errors));
         }
 
