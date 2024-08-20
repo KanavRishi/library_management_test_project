@@ -46,10 +46,9 @@ class BookServiceTest extends TestCase
         $isbn = '1234567890123';
         $status = 'available';
         $publishedDate = new \DateTime('2024-01-01');
-        $createdAt = new \DateTime();
 
-        $book = $this->bookService->createBook($author, $title, $isbn, $status, $publishedDate, $createdAt);
-        // dd($author);
+        $book = $this->bookService->createBook($author, $title, $isbn, $status, $publishedDate);
+        // dd($book);
 
         $this->assertInstanceOf(Book::class, $book);
         $this->assertEquals($author, $book->getAuthor());
@@ -83,16 +82,21 @@ class BookServiceTest extends TestCase
     {
         $book = $this->createMock(Book::class);
 
-        $violations = new ConstraintViolationList([
-            $this->createMock(\Symfony\Component\Validator\ConstraintViolation::class)
-        ]);
+        // Create a mock ConstraintViolation
+        $violation = $this->createMock(\Symfony\Component\Validator\ConstraintViolation::class);
 
-        $this->validator->method('validate')->willReturn($violations);
+        // Set up the validator to return a list with the violation
+        $violations = new \Symfony\Component\Validator\ConstraintViolationList([$violation]);
+
+        $this->validator
+            ->method('validate')
+            ->willReturn($violations);
 
         $this->expectException(ValidatorException::class);
 
         $this->bookService->saveBook($book);
     }
+
 
     public function testListBooks(): void
     {

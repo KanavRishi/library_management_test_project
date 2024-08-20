@@ -25,10 +25,10 @@ class UserService
         $this->validator=$validator;
     }
 
-    public function createUser(string $name,string $email,string $password,$role,\Datetime $createdAt): User
+    public function createUser(string $name,string $email,string $password,$role): User
     {
         // dd($user);
-        $user = new User(new Name($name),new Email($email),$password,$role,$createdAt);
+        $user = new User(new Name($name),new Email($email),$password,$role);
         
         return $user;
         

@@ -28,10 +28,10 @@ class BookService
         $this->bookRepository=$bookRepository;
     }
 
-    public function createBook(string $author,string $title,string $isbn,string $status,\DateTime $publishedDate,$createdAt): Book
+    public function createBook(string $author,string $title,string $isbn,string $status,\DateTime $publishedDate): Book
     {
 
-        $book = new Book(new Author($author),new Title($title),new Isbn($isbn),$publishedDate,$status,$createdAt);
+        $book = new Book(new Author($author),new Title($title),new Isbn($isbn),$publishedDate,$status);
 
         return $book;
     }
@@ -43,11 +43,8 @@ class BookService
         if (count($violations) > 0) {
             $errors = [];
             foreach ($violations as $violation) {
-                // $errors[] = $violation->getMessage();
-                $errorType = get_class($violation->getConstraint());
+                $errors[] = $violation->getMessage();
             }
-            dd($errorType);
-            // dd($errors);
             throw new ValidatorException(implode(', ', $errors));
         }
 

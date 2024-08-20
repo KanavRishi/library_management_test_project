@@ -8,7 +8,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Isbn
 {
     #[ORM\Column(type: 'string',unique:true,length:15)]
-    #[Assert\Type(type: 'numeric', message: "ISBN must be a number.")]
+    #[Assert\Regex(
+        pattern: '/^\d+$/',
+        message: "ISBN must contain only numbers."
+    )]
     private string $value;
 
     public function __construct(string $value)
