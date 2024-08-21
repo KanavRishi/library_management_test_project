@@ -8,13 +8,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Repository\BorrowRepository;
-use App\ValueObject\Isbn;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use App\Service\UserService;
 use App\Service\BookService;
-use App\Service\BorrowService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 
@@ -29,6 +25,7 @@ class BookController extends AbstractController
         $this->bookService = $bookService;
         $this->logger = $logger;
     }
+
     // Add Book 
     #[Route('/book', methods: ['POST'], name: 'add_book')]
     public function addBook(Request $request, ValidatorInterface $validator): JsonResponse
@@ -100,7 +97,6 @@ class BookController extends AbstractController
         }
     }
 
-
     // Update Book
     #[Route('/book/{id}', methods: ['PUT'], name: 'update_book')]
     public function updateBook(Request $request, $id, ValidatorInterface $validator): JsonResponse
@@ -110,13 +106,13 @@ class BookController extends AbstractController
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
                 throw new \InvalidArgumentException('Invalid ID provided.');
             }
-    
+
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
-    
+
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
@@ -214,13 +210,13 @@ class BookController extends AbstractController
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
                 throw new \InvalidArgumentException('Invalid ID provided.');
             }
-    
+
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
-    
+
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
@@ -262,7 +258,7 @@ class BookController extends AbstractController
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
-    
+
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
