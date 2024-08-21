@@ -282,7 +282,6 @@ class UserController extends AbstractController
     #[Route('/borrow', methods: ['PUT'])]
     public function borrowWhenAvailable(Request $request): JsonResponse
     {
-
         $data = json_decode($request->getContent(), true);
 
         // check bookid and userid to be integer and positive value
@@ -314,6 +313,11 @@ class UserController extends AbstractController
             }
         } catch (\Exception $e) {
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
+        } catch (UniqueConstraintViolationException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'Book Already Borrowed.'
+            ], JsonResponse::HTTP_CONFLICT);
         }
 
         // check if the user exist or not
