@@ -15,30 +15,31 @@ Before you begin, ensure you have the following software installed:
 ## Installation
 
 1. **Clone the Repository:**
-   **bash**
-- **git clone https://github.com/KanavRishi/library-management-project.git**
+   ```bash
+   git clone https://github.com/KanavRishi/library-management-project.git**
 - **cd library-management-system**
 - **Install Dependencies: using composer install command**
 
 2. **Run the following command to install the required PHP dependencies:**
-- **bash**
+   ```bash
 **Copy code**
 **composer install**
 
 3. **Database Configuration:**
    Copy the .env file to set up your database connection:**
-- **bash**
+   ```bash
 - **Copy code**
 - **cp .env .env.local**
 Then, configure your .env.local file with your database credentials:
-
-**makefile**
-**Copy code**
-**DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_project"**
+   
+- **makefile**
+- **Copy code**
+- **DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_project"**
 4. **Create the Database**:
 Run the following command to create the database:
 
 // Create Database
+   
 - **symfony console doctrine:database:create**
 ## Create Migrations
 - **symfony console create:migration**
