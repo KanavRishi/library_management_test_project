@@ -3,15 +3,11 @@ namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Book;
-use App\Entity\Borrow;
 use App\Repository\BookRepository;
 use App\Enum\Status;
-use phpDocumentor\Reflection\Types\Integer;
 use App\ValueObject\Title;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use App\ValueObject\Isbn;
 use App\ValueObject\Author;
-use App\Enum\DeletionStatus;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 
@@ -28,6 +24,7 @@ class BookService
         $this->bookRepository=$bookRepository;
     }
 
+    // method for creating book object 
     public function createBook(string $author,string $title,string $isbn,string $status,\DateTime $publishedDate): Book
     {
 
@@ -36,6 +33,7 @@ class BookService
         return $book;
     }
  
+    // method for checking validations and persisting book
     public function saveBook(Book $book): bool
     {   
         // dd($book);
@@ -55,6 +53,7 @@ class BookService
         return true;
     }
 
+    // method for book listing if the book is not deleted
     public function listBooks(): array
     {
         return $this->bookRepository->createQueryBuilder('b')
@@ -64,6 +63,7 @@ class BookService
         ->getResult();
     }
 
+    // method for fetching single book by id
     public function getBookById(int $id): ?Book
     {
         $book = $this->bookRepository->createQueryBuilder('b')
@@ -79,6 +79,7 @@ class BookService
         return $book;
     }
 
+    // update book by id
     public function updateBook(int $id,array $data): Book
     {
         $book = $this->getBookById($id);
@@ -90,6 +91,8 @@ class BookService
         
         return $book;
     }
+
+    // Method for updating Book status from available to borrowed
     public function updateBookStatus(Book $book): bool
     {
         $status = Status::from("borrowed");
@@ -99,17 +102,8 @@ class BookService
         $this->entityManager->flush();
         return true;
     }
-    public function checkDuplBook(Isbn $isbn): bool
-    {
-        $isbnValue = $isbn->getValue();
-        $check_dupl = $this->bookRepository->findOneBy(['isbn.value' => $isbnValue]);
-        if($check_dupl)
-        {
-            return true;
-        }
-        return false;
-        // return true;
-    }
+
+    // method for checking validation errors
     public function validate(Book $book): void
     {
         $violations = $this->validator->validate($book);
@@ -123,6 +117,8 @@ class BookService
             throw new ValidatorException(implode(', ', $errors));
         }
     }
+
+    // Method for changing book status when a book is returned
     public function changeBookStatus(Book $book): bool
     {
         // dd($book);

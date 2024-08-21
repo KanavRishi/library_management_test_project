@@ -2,8 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
-use App\Entity\Borrow;
 use App\Service\UserService;
 use App\Service\BookService;
 use App\Service\BorrowService;
@@ -12,7 +10,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Enum\Role;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use App\Enum\Status;
 use App\Enum\DeletionStatus;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Repository\BorrowRepository;
@@ -36,14 +33,17 @@ class UserController extends AbstractController
     public function createUser(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-
+        //check wheter the variable is set or not
         if (!isset($data['name'], $data['email'], $data['role'], $data['password'])) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'Please provide all required data'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
+        // Hashing the password
         $password = password_hash($data['password'], PASSWORD_BCRYPT);
+
+        // create user object
         try {
             $user = $this->userService->createUser($data['name'], $data['email'], $password, $data['role']);
             if (!$user) {
@@ -53,6 +53,7 @@ class UserController extends AbstractController
             return new JsonResponse(["message" => "Unexpected Error:" . $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
 
+        // validate role 
         try {
             $role = Role::from($data['role']);
         } catch (\ValueError $e) {
@@ -61,7 +62,8 @@ class UserController extends AbstractController
                 'message' => 'Invalid Role value'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
-        // $user->setRole($role);
+
+        // save user and check for exceptions
         try {
             $this->userService->saveUser($user);
             return new JsonResponse([
@@ -81,10 +83,12 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
+
     // Update User
     #[Route('/user/{id}', methods: ["PUT"])]
     public function updateUser(Request $request, $id): JsonResponse
     {
+        // check whether id is integer and positive value
         try {
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
                 throw new \InvalidArgumentException('Invalid ID provided.');
@@ -101,7 +105,10 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
+        // get content
         $data = json_decode($request->getContent(), true);
+
+        // check if the user exist or not If exist the get user data by id
         try {
             $user = $this->userService->getUserById($id);
             if (!$user) {
@@ -110,6 +117,7 @@ class UserController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse(["message" => "Unexpected Error:" . $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         }
+        // check variables exist or not
         if (!isset($data['name'], $data['email'], $data['role'], $data['password'])) {
             return new JsonResponse([
                 'status' => 'error',
@@ -117,6 +125,7 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
+        // check role value
         try {
             $role = Role::from($data['role']);
         } catch (\ValueError $e) {
@@ -126,6 +135,7 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
+        // create user object using updateUser method
         try {
             $userData = $this->userService->updateUser($id, $data);
         } catch (\Exception $e) {
@@ -134,6 +144,8 @@ class UserController extends AbstractController
                 "message" => $e->getMessage()
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
+
+        // save user and check exception
         try {
             $this->userService->saveUser($userData);
             return new JsonResponse([
@@ -154,9 +166,11 @@ class UserController extends AbstractController
         }
     }
 
+    // list user method
     #[Route('/user', methods: ["GET"], name: 'list_user')]
     public function listUser(): JsonResponse
     {
+        // List User object
         $users = $this->userService->listusers();
         if ($users) {
             $responseData = array_map(function ($users) {
@@ -164,7 +178,6 @@ class UserController extends AbstractController
                     'id' => $users->getId(),
                     'name' => $users->getName(),
                     'email' => $users->getEmail(),
-                    // 'password'=>$users->getPassword(),
                     'role' => $users->getRole()->value
                 ];
             }, $users);
@@ -181,6 +194,7 @@ class UserController extends AbstractController
     #[Route('/user/{id}/', methods: ['GET'])]
     public function getUserById($id): JsonResponse
     {
+        // check whether id is numeric and positive integer
         try {
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
                 throw new \InvalidArgumentException('Invalid ID provided.');
@@ -197,9 +211,9 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        $user = $this->userService->getUserById($id);
-
+        // get user by id and check user if exist
         try {
+            $user = $this->userService->getUserById($id);
             if (!$user) {
                 return $this->json(['status' => 'User not Found'], JsonResponse::HTTP_NOT_FOUND);
             }
@@ -222,7 +236,7 @@ class UserController extends AbstractController
     #[Route('/user/delete/{id}', methods: ['DELETE'])]
     public function deleteUser(int $id): JsonResponse
     {
-
+        // check whether id is numeric and positive integer
         try {
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
                 throw new \InvalidArgumentException('Invalid ID provided.');
@@ -239,17 +253,16 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-
+        // check wheter user exist or not
         try {
-            $checkUser = $this->userService->getUserById($id);
-            if (empty($checkUser)) {
+            $user = $this->userService->getUserById($id);
+            if (empty($user)) {
                 throw new \Exception("User does not exist");
             }
         } catch (\Exception $e) {
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $user = $this->userService->getUserById($id);
         $user->setDeletionStatus(DeletionStatus::DELETED);
 
         try {
@@ -272,6 +285,7 @@ class UserController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
+        // check bookid and userid to be integer and positive value
         try {
             if (!is_numeric($data['userid']) || intval($data['userid']) != $data['userid'] || $data['userid'] <= 0) {
                 throw new \InvalidArgumentException('Invalid User ID provided.');
@@ -291,6 +305,7 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
+        // getBookById check if the book exist or not
         try {
             $book = $this->bookService->getBookById($data['bookid']);
             // dd($book);
@@ -301,6 +316,7 @@ class UserController extends AbstractController
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         }
 
+        // check if the user exist or not
         try {
             $user = $this->userService->getUserById($data['userid']);
             if (!$user) {
@@ -309,6 +325,8 @@ class UserController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         }
+
+        // check if the book is already borrowed or not
         try {
             if ($book->getStatus()->value == "borrowed") {
                 throw new \Exception("Book Already Borrowed");
@@ -317,7 +335,7 @@ class UserController extends AbstractController
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_OK);
         }
 
-
+        // update book status to borrowed from available
         $book_stat = $this->bookService->updateBookStatus($book);
         if ($book_stat) {
 
@@ -330,9 +348,11 @@ class UserController extends AbstractController
         }
     }
 
+    // Return book controller
     #[Route('/borrow/return/{id}', methods: ['POST'], name: 'return_book')]
     public function returnBook(int $id): JsonResponse
     {
+        // check bookid and userid to be integer and positive value
         try {
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
                 throw new \InvalidArgumentException('Invalid User ID provided.');
@@ -349,6 +369,7 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
+        // check if the borrow record exist or not
         try {
             $borrow = $this->borrowRepository->find($id);
             if (!$borrow) {
@@ -361,7 +382,7 @@ class UserController extends AbstractController
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         }
 
-
+        // Return Book logic
         $this->borrowService->returnBook($borrow);
         try {
             $getBookId = $this->bookService->getBookById($borrow->getBookid()->getId());
@@ -374,7 +395,7 @@ class UserController extends AbstractController
                 'message' => $e->getMessage()
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
-        // dd($getBookId);
+        // change status code
         try {
             $changeStatus = $this->bookService->changeBookStatus($getBookId);
             if (!($changeStatus)) {

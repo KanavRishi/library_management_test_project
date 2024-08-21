@@ -25,6 +25,7 @@ class UserService
         $this->validator=$validator;
     }
 
+    // Mthod for creating user object
     public function createUser(string $name,string $email,string $password,$role): User
     {
         // dd($user);
@@ -34,6 +35,7 @@ class UserService
         
     }
 
+    // Method for save user info
     public function saveUser(User $user): void
     {
         $violations = $this->validator->validate($user);
@@ -48,8 +50,10 @@ class UserService
         $this->entityManager->flush();
     }
 
+    // Update user
     public function updateUser($id,$data): User
     {
+        // check if user exist or not
         $user = $this->getUserById($id);
         if(!$user)
         {
@@ -62,35 +66,19 @@ class UserService
 
         return $user;
     }
+
+    // getUser by id method
     public function getUserById(int $id): ?User
     {
         return $this->userRepository->findOneBy(['id'=>$id,'deletionStatus'=>'active']);
     }
+
+    // Method for list all user details
     public function listUsers(): array
     {
         return $this->userRepository->findAll();
     }
-    public function deleteUser(int $id): bool
-    {
-        $user=$this->userRepository->find($id);
 
-        if(!$user)
-        {
-            return false;
-        }
-        $this->entityManager->remove($user);
-        $this->entityManager->flush();
-        return true;
-    }
-    public function checkDuplUser(string $email): bool
-    {
-        $check_dupl= $this->userRepository->findOneBy(['email.value'=>$email]);
-        if($check_dupl)
-        {
-            return true;
-        }
-        return false;
-    }
 }
 
 

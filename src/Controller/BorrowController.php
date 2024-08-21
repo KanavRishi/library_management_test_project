@@ -18,9 +18,11 @@ class BorrowController extends AbstractController
     {
         $this->borrowService=$borrowService;
     }
+    // borrow history of books
     #[Route('/borrow/history', methods: ['GET'], name: 'borrow_history')]
     public function getBorrowHistory(): JsonResponse
     {
+        //get borrow history from getBorrowHistory method
         $borrowHistory = $this->borrowService->getBorrowHistory();
 
         $responseData = array_map(function($borrow) {

@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Enum\Status;
-use App\Enum\DeletionStatus;
 use App\Repository\BookRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -49,9 +48,6 @@ class Book
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $updated_at = null;
 
-    #[ORM\Column(type: "string", enumType: DeletionStatus::class)]
-    private DeletionStatus $deletionStatus;
-
     public function __construct(Author $author, Title $title, Isbn $isbn, \DateTimeInterface $publishedDate)
     {
         $this->author = $author;
@@ -59,7 +55,6 @@ class Book
         $this->isbn = $isbn;
         $this->publishedDate = $publishedDate;
         $this->status = Status::AVAILABLE;
-        $this->deletionStatus = DeletionStatus::ACTIVE;
     }
 
     public function getId(): ?int
@@ -155,14 +150,4 @@ class Book
         }
     }
 
-    public function getDeletionStatus(): DeletionStatus
-    {
-        return $this->deletionStatus;
-    }
-
-    public function setDeletionStatus(DeletionStatus $status): static
-    {
-        $this->deletionStatus = $status;
-        return $this;
-    }
 }

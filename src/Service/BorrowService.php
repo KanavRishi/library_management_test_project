@@ -25,6 +25,7 @@
             $this->bookService = $bookService;
             $this->userService = $userService;
         }
+        // Business logic for borrow book by userid and bookid
         public function borrowBook($data): bool
         {
             $user = $this->userService->getUserById($data['userid']);
@@ -38,6 +39,7 @@
             $this->entityManager->flush();
             return true;
         }
+        //method for return book
         public function returnBook(Borrow $borrow): Borrow
         {
             $borrow->setReturnDate((new \DateTimeImmutable('now')));
@@ -47,6 +49,7 @@
     
             return $borrow;
         }
+        // Method for fetching borrow history
         public function getBorrowHistory(): array
         {
             return $this->borrowRepository->findAll();
