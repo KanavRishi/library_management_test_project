@@ -27,13 +27,11 @@ Before you begin, ensure you have the following software installed:
 3. **Database Configuration:**
    Copy the .env file to set up your database connection:**
    ```bash
-   Copy code
  cp .env .env.local
 Then, configure your .env.local file with your database credentials:
    
-- **makefile**
-- **Copy code**
-- **DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_project"**
+   ```bash
+DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_project"
 4. **Create the Database**:
 Run the following command to create the database:
 
