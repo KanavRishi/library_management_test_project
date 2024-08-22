@@ -69,6 +69,7 @@ Replace username and password with your MySQL credentials.
 
 # Running the Application
 To start the Symfony server, run:
+1. **Run The application using command**
       ```bash
       symfony server:start
 
@@ -81,8 +82,7 @@ The application will be accessible at http://127.0.0.1:8000.
    composer require --dev phpunit/phpunit
 
 2. **Run all tests:**
-   bash
-   Copy Code
+   ```bash
    ./vendor/bin/phpunit
 
 This will run all the tests in the tests directory and output the results.
