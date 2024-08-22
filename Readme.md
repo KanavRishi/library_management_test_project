@@ -33,7 +33,7 @@ Install Dependencies: using composer install command
    cp .env .env.local
 
 Then, configure your `.env.local` file with your database credentials:
-      ```dotenv
+      ```bash
       DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_project"
 
 4. **Create the Database**:
