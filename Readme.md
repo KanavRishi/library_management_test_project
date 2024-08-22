@@ -18,45 +18,45 @@ Before you begin, ensure you have the following software installed:
    ```bash
    git clone https://github.com/KanavRishi/library-management-project.git
 
-Change the directory
-      ```bash
-      cd library-management-system
+2. **Change the directory**
+   ```bash
+   cd library-management-system
 
 Install Dependencies: using composer install command
 
-2. **Run the following command to install the required PHP dependencies:**
-   ```bash
-   composer install
+3. **Run the following command to install the required PHP dependencies:**
+      ```bash
+      composer install
 
-3. **Database Configuration:**
+4. **Database Configuration:**
    Copy the .env file to set up your database connection:**
    ```bash
    cp .env .env.local
-
+5. **Configure .env file**
 Then, configure your `.env.local` file with your database credentials:
       ```bash
-DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_project"
+      DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_project"
 
-4. **Create the Database**:
+6. **Create the Database**:
 Run the following command to create the database:
       ```bash
       symfony console doctrine:database:create
 
-5. **Create Migrations** 
+7. **Create Migrations** 
       ```bash
       symfony console create:migration
 
-6. **Run Migrations:**
+8. **Run Migrations:**
 Execute the following command to run the database migrations and set up the schema:
       ```bash 
       symfony console doctrine:migrations:migrate
 
-7. **Load Fixtures (Optional):**
+9. **Load Fixtures (Optional):**
 To load some sample data into the database:
       ```bash
       php bin/console doctrine:fixtures:load
       
-8. **Configuration Details**
+10. **Configuration Details**
 Here’s a sample configuration for the .env.local file:
 
    ```
