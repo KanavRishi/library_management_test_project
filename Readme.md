@@ -18,7 +18,8 @@ Before you begin, ensure you have the following software installed:
    ```bash
    git clone https://github.com/KanavRishi/library-management-project.git
 
-   cd library-management-system
+   ```bash
+cd library-management-system
 
 Install Dependencies: using composer install command
 
@@ -41,9 +42,9 @@ Run the following command to create the database:
       symfony console doctrine:database:create
 
 5. **Create Migrations** 
-   ```bash
+   ```
  symfony console create:migration
-
+ 
 6. **Run Migrations:**
 Execute the following command to run the database migrations and set up the schema:
       ```bash 
@@ -57,11 +58,12 @@ To load some sample data into the database:
 8. **Configuration Details**
 Here’s a sample configuration for the .env.local file:
 
-dotenv
-Copy code
-APP_ENV=dev
-APP_DEBUG=true
-DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_system"
+   ```
+   Copy code
+   APP_ENV=dev
+   APP_DEBUG=true
+   DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_system"
+   ```
 
 Replace username and password with your MySQL credentials.
 
