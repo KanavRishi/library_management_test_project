@@ -42,13 +42,13 @@ Run the following command to create the database:
       symfony console doctrine:database:create
 
 5. **Create Migrations** 
-   ```
- symfony console create:migration
- 
+      ```bash
+      symfony console create:migration
+
 6. **Run Migrations:**
 Execute the following command to run the database migrations and set up the schema:
       ```bash 
-symfony console doctrine:migrations:migrate
+      symfony console doctrine:migrations:migrate
 
 7. **Load Fixtures (Optional):**
 To load some sample data into the database:
