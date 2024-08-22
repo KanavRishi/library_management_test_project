@@ -71,7 +71,7 @@ Replace username and password with your MySQL credentials.
 To start the Symfony server, run:
       ```bash
       symfony server:start
-
+      ```
 The application will be accessible at http://127.0.0.1:8000.
 
 # Running Unit Tests
