@@ -27,29 +27,30 @@ Before you begin, ensure you have the following software installed:
 3. **Database Configuration:**
    Copy the .env file to set up your database connection:**
    ```bash
- cp .env .env.local
+   cp .env .env.local
+
 Then, configure your .env.local file with your database credentials:
-   
-   ```bash
+      ```bash
 DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_project"
+
 4. **Create the Database**:
 Run the following command to create the database:
+      ```bash
+      symfony console doctrine:database:create
 
-// Create Database
-   
-- **symfony console doctrine:database:create**
-## Create Migrations
-- **symfony console create:migration**
+## Create Migrations```bash
+ symfony console create:migration
+
 5. **Run Migrations:**
 Execute the following command to run the database migrations and set up the schema:
-
-//Run Migrations
-- **symfony console doctrine:migrations:migrate**
+      ```bash 
+symfony console doctrine:migrations:migrate
 
 6. **Load Fixtures (Optional):**
 To load some sample data into the database:
-
-- **php bin/console doctrine:fixtures:load**
+      ```bash
+      php bin/console doctrine:fixtures:load
+      
 7. **Configuration Details**
 Here’s a sample configuration for the .env.local file:
 
@@ -62,20 +63,21 @@ Replace username and password with your MySQL credentials.
 
 # Running the Application
 To start the Symfony server, run:
+      ```bash
+      symfony server:start
 
-- **symfony server:start**
 The application will be accessible at http://127.0.0.1:8000.
 
 # Running Unit Tests
 1. **Install PHPUnit (if not already installed):**
-   bash
+   ```bash
    Copy code
-- **composer require --dev phpunit/phpunit command for test**
+   composer require --dev phpunit/phpunit
 
 2. **Run all tests:**
    bash
    Copy Code
-- **./vendor/bin/phpunit**
+   ./vendor/bin/phpunit
 
 This will run all the tests in the tests directory and output the results.
 
