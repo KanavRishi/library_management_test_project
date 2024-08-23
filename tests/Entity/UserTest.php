@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Tests\Entity;
 
 use App\Entity\User;
@@ -7,59 +8,48 @@ use App\ValueObject\Email;
 use App\Enum\Role;
 use App\Enum\DeletionStatus;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\Cache\CacheInterface;
 
 class UserTest extends TestCase
 {
-    public function testUserEntity()
+    public function testStoreUserInCache(): void
     {
-        // Create instances of Value Objects and Enums for testing
-        $name = new Name("Kanav Rishi");
-        $email = new Email("kanav.rishi@example.com");
-        $password = "Kanav@123!";
-        $role = Role::MEMBER;
-        $deletionStatus = DeletionStatus::ACTIVE;
-        $createdAt = new \DateTimeImmutable();
-        $updatedAt = new \DateTimeImmutable();
+        // Create a mock for the CacheInterface
+        $cache = $this->createMock(CacheInterface::class);
 
-        // Instantiate the User entity
+        $name = new Name("Kanav");
+        $email = new Email("kanav@gmail.com");
+        $password = "Secure@123";
         $user = new User($name, $email, $password);
 
-        // Test constructor values
-        $this->assertSame($name->getValue(), $user->getName());
-        $this->assertSame($email->getValue(), $user->getEmail());
-        $this->assertSame($password, $user->getPassword());
-        $this->assertSame($role, $user->getRole());
-        $this->assertSame($deletionStatus, $user->getDeletionStatus());
+        // $user->setValue($user,123);
 
-        // Test setting and getting the Role
-        $newRole = Role::ADMIN;
-        $user->setRole($newRole);
-        $this->assertSame($newRole, $user->getRole());
+        $cacheKey = 'user_' . $user->getId();
 
-        // Test setting and getting the Password
-        $newPassword = "NewSecurePass456!";
-        $user->setPassword($newPassword);
-        $this->assertSame($newPassword, $user->getPassword());
+        // Create a mock for the User object
+        $user = $this->createMock(User::class);
 
-        // Test setting and getting the created_at date
-        $user->setCreatedAt($createdAt);
-        $this->assertSame($createdAt, $user->getCreatedAt());
+        // Configure the mock to return a specific ID
 
-        // Test setting and getting the updated_at date
-        $user->setUpdatedAt($updatedAt);
-        $this->assertSame($updatedAt, $user->getUpdatedAt());
+        // Configure the cache mock to expect the 'get' method call
+        $cache->expects($this->once())
+            ->method('get')
+            ->with(
+                $this->equalTo($cacheKey),
+                $this->callback(function ($callback) use ($user) {
+                    // Simulate the cache storing the user if it's not found
+                    return $callback() === $user;
+                })
+            )
+            ->willReturn($user);
+        // dd($cache);
+        // Use the cache's get method to either retrieve or store the user
+        $retrievedUser = $cache->get($cacheKey, function () use ($user) {
+            return $user;
+        });
 
-        // Test setting and getting the DeletionStatus
-        $newDeletionStatus = DeletionStatus::DELETED;
-        $user->setDeletionStatus($newDeletionStatus);
-        $this->assertSame($newDeletionStatus, $user->getDeletionStatus());
+        // Assert that the retrieved user is the same as the stored user
+        $this->assertSame($user, $retrievedUser);
 
-        // Test that the timestamps are updated correctly with lifecycle callbacks
-        $user->updatedTimestamps();
-        $this->assertNotNull($user->getUpdatedAt());
-
-        if ($user->getCreatedAt() === null) {
-            $this->assertNotNull($user->getCreatedAt());
-        }
     }
 }

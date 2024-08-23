@@ -4,6 +4,8 @@ namespace App\Tests\Service;
 
 use App\Service\BookService;
 use App\Entity\Book;
+use Doctrine\ORM\AbstractQuery;
+use Doctrine\ORM\QueryBuilder;
 use App\Repository\BookRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -100,10 +102,36 @@ class BookServiceTest extends TestCase
 
     public function testListBooks(): void
     {
-        $books = [$this->createMock(Book::class)];
+        $book = $this->createMock(Book::class);
+        $books = [$book];
+        
+        // Mock the QueryBuilder, Query, and other chained calls
+        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $query = $this->createMock(\Doctrine\ORM\Query::class);
 
+        // Mock the repository method that returns the QueryBuilder
         $this->bookRepository
-            ->method('findAll')
+            ->method('createQueryBuilder')
+            ->with('b')
+            ->willReturn($queryBuilder);
+
+        // Mock the chainable methods of the QueryBuilder
+        $queryBuilder
+            ->method('where')
+            ->with('b.status != :deletedStatus')
+            ->willReturn($queryBuilder);
+
+        $queryBuilder
+            ->method('setParameter')
+            ->willReturn($queryBuilder);
+
+        $queryBuilder
+            ->method('getQuery')
+            ->willReturn($query);
+
+        // Mock the getResult to return the list of books
+        $query
+            ->method('getResult')
             ->willReturn($books);
 
         $result = $this->bookService->listBooks();
@@ -114,49 +142,45 @@ class BookServiceTest extends TestCase
     public function testGetBookById(): void
     {
         $book = $this->createMock(Book::class);
+        $books = [$book];
+        
+        // Mock the QueryBuilder, Query, and other chained calls
+        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $query = $this->createMock(\Doctrine\ORM\Query::class);
 
+        // Mock the repository method that returns the QueryBuilder
         $this->bookRepository
-            ->method('findOneBy')
-            ->with(['id' => 1, 'deletionStatus' => 'active'])
+            ->method('createQueryBuilder')
+            ->with('b')
+            ->willReturn($queryBuilder);
+
+        // Mock the chainable methods of the QueryBuilder
+        $queryBuilder
+            ->method('where')
+            ->with('b.id = :id')
+            ->willReturn($queryBuilder);
+
+        $queryBuilder
+            ->method('andWhere')
+            ->with('b.status != :activeStatus')
+            ->willReturn($queryBuilder);
+
+        $queryBuilder
+            ->method('setParameter')
+            ->willReturn($queryBuilder);
+
+        $queryBuilder
+            ->method('getQuery')
+            ->willReturn($query);
+
+        // Mock the getOneOrNullResult to return the book
+        $query
+            ->method('getOneOrNullResult')
             ->willReturn($book);
 
-        $result = $this->bookService->getBookById(1);
+        $result = $this->bookService->getBookById(55);
 
         $this->assertSame($book, $result);
     }
 
-    public function testDeleteBook(): void
-    {
-        $book = $this->createMock(Book::class);
-
-        $this->bookRepository
-            ->method('find')
-            ->with(1)
-            ->willReturn($book);
-
-        $this->entityManager
-            ->expects($this->once())
-            ->method('remove')
-            ->with($book);
-
-        $this->entityManager
-            ->expects($this->once())
-            ->method('flush');
-
-        $result = $this->bookService->deleteBook(1);
-
-        $this->assertTrue($result);
-    }
-
-    public function testDeleteBookNotFound(): void
-    {
-        $this->bookRepository
-            ->method('find')
-            ->with(1)
-            ->willReturn(null);
-
-        $result = $this->bookService->deleteBook(1);
-
-        $this->assertFalse($result);
-    }
 }

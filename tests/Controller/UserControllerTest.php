@@ -105,7 +105,7 @@ class UserControllerTest extends WebTestCase
         ]));
         // dd($client->getResponse());
         // Assert that the response status code is 405
-        $this->assertEquals(404, $client->getResponse()->getStatusCode());
+        $this->assertEquals(400, $client->getResponse()->getStatusCode());
 
         // Assert that the response content is JSON
         $this->assertJson($client->getResponse()->getContent());

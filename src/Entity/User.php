@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\ValueObject\Name;
 use App\ValueObject\Email;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Traits\TimeStampableTrait;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -22,7 +23,7 @@ class User
     #[Assert\NotNull]
     #[ORM\Embedded(class: Name::class)]
     private ?Name $name;
-    
+
     #[Assert\NotBlank(message: 'Email address cannot be blank.')]
     #[Assert\Email(
         message: 'The email "{{ value }}" is not a valid email address.',
@@ -37,16 +38,10 @@ class User
     #[ORM\Column(length: 100)]
     private ?string $password = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $updated_at = null;
-
     #[ORM\Column(type: "string", enumType: DeletionStatus::class)]
     private DeletionStatus $deletionStatus;
-    
-    public function __construct(Name $name,Email $email,string $password)
+
+    public function __construct(Name $name, Email $email, string $password)
     {
         $this->name = $name;
         $this->email = $email;
@@ -108,39 +103,8 @@ class User
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->created_at;
-    }
+    use TimeStampableTrait;
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
-    {
-        $this->created_at = $created_at;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updated_at;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updated_at): static
-    {
-        $this->updated_at = $updated_at;
-
-        return $this;
-    }
-    #[ORM\PrePersist]
-    #[ORM\PreUpdate]
-    public function updatedTimestamps()
-    {
-        $this->setUpdatedAt(new \DateTimeImmutable('now'));
-
-        if ($this->getCreatedAt() == null) {
-            $this->setCreatedAt(new \DateTimeImmutable('now'));
-        }
-    }
     public function getDeletionStatus(): DeletionStatus
     {
         return $this->deletionStatus;

@@ -27,7 +27,7 @@ class BookService
     // method for creating book object 
     public function createBook(string $author,string $title,string $isbn,string $status,\DateTime $publishedDate): Book
     {
-
+        // dd($publishedDate);
         $book = new Book(new Author($author),new Title($title),new Isbn($isbn),$publishedDate,$status);
 
         return $book;
@@ -38,7 +38,7 @@ class BookService
     {   
         // dd($book);
         $violations = $this->validator->validate($book);
-        // echo count($violations);
+       
         if (count($violations) > 0) {
             $errors = [];
             foreach ($violations as $violation) {
@@ -66,6 +66,7 @@ class BookService
     // method for fetching single book by id
     public function getBookById(int $id): ?Book
     {
+        // dd($id);
         $book = $this->bookRepository->createQueryBuilder('b')
         ->where('b.id = :id')
         ->andWhere('b.status != :activeStatus')

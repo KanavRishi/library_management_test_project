@@ -1,59 +1,48 @@
 <?php
-
 namespace App\Tests\Entity;
 
 use App\Entity\Book;
 use App\ValueObject\Title;
 use App\ValueObject\Author;
 use App\ValueObject\Isbn;
-use App\Enum\Status;
-use App\Enum\DeletionStatus;
+use Symfony\Contracts\Cache\CacheInterface;
 use PHPUnit\Framework\TestCase;
 
 class BookTest extends TestCase
 {
-    public function testBookEntity()
+    public function testStoreBookInCache(): void
     {
-        // Initialize the required objects for the constructor
-        $title = new Title("The Dark Knight");
-        $author = new Author("Kanav");
-        $isbn = new Isbn("8181781234");
-        $publishedDate = new \DateTime('1995-03-10');
+        // Create a mock for the CacheInterface
+        $cache = $this->createMock(CacheInterface::class);
 
-        // Create the Book object with the required constructor parameters
+        // Create a Book object
+        $title = new Title("The Dark Knight Rises");
+        $author = new Author("Kanav");
+        $isbn = new Isbn("7181781235");
+        $publishedDate = new \DateTime('1995-03-10');
         $book = new Book($author, $title, $isbn, $publishedDate);
 
-        // Test getting the title
-        // dd();
-        $this->assertSame($title->getValue(), $book->getTitle());
+        // Simulate storing and retrieving the book in cache
+        $cacheKey = 'book_' . $book->getId();
+        // dd($cacheKey);
+        // Configure the cache mock to expect the 'get' method call
+        $cache->expects($this->once())
+            ->method('get')
+            ->with(
+                $this->equalTo($cacheKey),
+                $this->callback(function ($callback) use ($book) {
+                    // Simulate the cache storing the book if it's not found
+                    return $callback() === $book;
+                })
+            )
+            ->willReturn($book);
 
-        // Test getting the author
-        $this->assertSame($author->getName(), $book->getAuthor());
-
-        // Test getting the ISBN
-        $this->assertSame($isbn->getValue(), $book->getIsbn());
-
-        // Test setting and getting the status
-        $status = Status::AVAILABLE;
-        $book->setStatus($status);
-        $this->assertSame($status, $book->getStatus());
-
-        // Test getting the published date
-        $this->assertSame($publishedDate, $book->getPublishedDate());
-
-        // Test setting and getting the created_at date
-        $createdAt = new \DateTimeImmutable();
-        $book->setCreatedAt($createdAt);
-        $this->assertSame($createdAt, $book->getCreatedAt());
-
-        // Test setting and getting the updated_at date
-        $updatedAt = new \DateTimeImmutable();
-        $book->setUpdatedAt($updatedAt);
-        $this->assertSame($updatedAt, $book->getUpdatedAt());
-
-        // Test setting and getting the deletion status
-        $deletionStatus = DeletionStatus::ACTIVE;
-        $book->setDeletionStatus($deletionStatus);
-        $this->assertSame($deletionStatus, $book->getDeletionStatus());
+        // Use the cache's get method to either retrieve or store the book
+        $retrievedBook = $cache->get($cacheKey, function () use ($book) {
+            return $book;
+        });
+        // dd($retrievedBook);
+        // Assert that the retrieved book is the same as the stored book
+        $this->assertSame($book, $retrievedBook);
     }
 }

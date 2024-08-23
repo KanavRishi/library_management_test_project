@@ -10,6 +10,7 @@ use App\ValueObject\Title;
 use App\ValueObject\Isbn;
 use App\ValueObject\Author;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Traits\TimeStampableTrait;
 
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -40,13 +41,8 @@ class Book
     private ?\DateTimeInterface $publishedDate = null;
 
     #[ORM\Column(enumType: Status::class)]
+    #[Assert\NotNull]
     private ?Status $status = null;
-
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $created_at = null;
-
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $updated_at = null;
 
     public function __construct(Author $author, Title $title, Isbn $isbn, \DateTimeInterface $publishedDate)
     {
@@ -117,37 +113,6 @@ class Book
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->created_at;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
-    {
-        $this->created_at = $created_at;
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updated_at;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updated_at): static
-    {
-        $this->updated_at = $updated_at;
-        return $this;
-    }
-
-    #[ORM\PrePersist]
-    #[ORM\PreUpdate]
-    public function updatedTimestamps(): void
-    {
-        $this->setUpdatedAt(new \DateTimeImmutable('now'));
-
-        if ($this->getCreatedAt() === null) {
-            $this->setCreatedAt(new \DateTimeImmutable('now'));
-        }
-    }
+    use TimeStampableTrait;
 
 }
