@@ -236,21 +236,21 @@ class UserController extends AbstractController
                 throw new \InvalidArgumentException('Invalid Book ID provided.');
             }
 
-        // getBookById check if the book exist or not
-        
+            // getBookById check if the book exist or not
+
             $book = $this->bookService->getBookById($data['bookid']);
             // dd($book);
             if (!$book) {
                 throw new \Exception("Book not found");
             }
-        // check if the user exist or not
-        
+            // check if the user exist or not
+
             $user = $this->userService->getUserById($data['userid']);
             if (!$user) {
                 throw new \Exception("User not found");
             }
 
-        // check if the book is already borrowed or not
+            // check if the book is already borrowed or not
             if ($book->getStatus()->value == "borrowed") {
                 throw new \Exception("Book Already Borrowed");
             }
@@ -286,8 +286,8 @@ class UserController extends AbstractController
                 throw new \InvalidArgumentException('Invalid ID provided.');
             }
 
-        // check if the borrow record exist or not
-        
+            // check if the borrow record exist or not
+
             $borrow = $this->borrowRepository->find($id);
             if (!$borrow) {
                 return new JsonResponse([
@@ -296,13 +296,13 @@ class UserController extends AbstractController
                 ], JsonResponse::HTTP_NOT_FOUND);
             }
 
-        // Return Book logic
-        $this->borrowService->returnBook($borrow);
+            // Return Book logic
+            $this->borrowService->returnBook($borrow);
             $getBookId = $this->bookService->getBookById($borrow->getBookid()->getId());
             if (!($getBookId)) {
                 throw new \Exception("Book Not Found");
             }
-        // change status code
+            // change status code
             $changeStatus = $this->bookService->changeBookStatus($getBookId);
             if (!($changeStatus)) {
                 throw new \Exception("Book Not Found");
@@ -315,12 +315,12 @@ class UserController extends AbstractController
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage()
-            ],JsonResponse::HTTP_NOT_FOUND);
+            ], JsonResponse::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage()
-            ],JsonResponse::HTTP_BAD_REQUEST);
+            ], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 }

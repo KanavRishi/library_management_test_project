@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Embeddable]
 class Email
 {
-    #[ORM\Column(type: "string", length: 255,unique:true)]
+    #[ORM\Column(type: "string", length: 255, unique: true)]
     #[Assert\NotBlank(message: "The email cannot be empty.")]
     private string $value;
 

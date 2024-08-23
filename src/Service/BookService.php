@@ -17,28 +17,28 @@ class BookService
     private $validator;
     private BookRepository $bookRepository;
 
-    public function __construct(EntityManagerInterface $entityManager,ValidatorInterface $validator,BookRepository $bookRepository)
+    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, BookRepository $bookRepository)
     {
-        $this->entityManager=$entityManager;
-        $this->validator=$validator;
-        $this->bookRepository=$bookRepository;
+        $this->entityManager = $entityManager;
+        $this->validator = $validator;
+        $this->bookRepository = $bookRepository;
     }
 
     // method for creating book object 
-    public function createBook(string $author,string $title,string $isbn,string $status,\DateTime $publishedDate): Book
+    public function createBook(string $author, string $title, string $isbn, string $status, \DateTime $publishedDate): Book
     {
         // dd($publishedDate);
-        $book = new Book(new Author($author),new Title($title),new Isbn($isbn),$publishedDate,$status);
+        $book = new Book(new Author($author), new Title($title), new Isbn($isbn), $publishedDate, $status);
 
         return $book;
     }
- 
+
     // method for checking validations and persisting book
     public function saveBook(Book $book): bool
-    {   
+    {
         // dd($book);
         $violations = $this->validator->validate($book);
-       
+
         if (count($violations) > 0) {
             $errors = [];
             foreach ($violations as $violation) {
@@ -49,7 +49,7 @@ class BookService
 
         $this->entityManager->persist($book);
         $this->entityManager->flush();
-        
+
         return true;
     }
 
@@ -57,10 +57,10 @@ class BookService
     public function listBooks(): array
     {
         return $this->bookRepository->createQueryBuilder('b')
-        ->where('b.status != :deletedStatus')
-        ->setParameter('deletedStatus', 'deleted')
-        ->getQuery()
-        ->getResult();
+            ->where('b.status != :deletedStatus')
+            ->setParameter('deletedStatus', 'deleted')
+            ->getQuery()
+            ->getResult();
     }
 
     // method for fetching single book by id
@@ -68,12 +68,12 @@ class BookService
     {
         // dd($id);
         $book = $this->bookRepository->createQueryBuilder('b')
-        ->where('b.id = :id')
-        ->andWhere('b.status != :activeStatus')
-        ->setParameter('id', $id)
-        ->setParameter('activeStatus', 'deleted')
-        ->getQuery()
-        ->getOneOrNullResult();
+            ->where('b.id = :id')
+            ->andWhere('b.status != :activeStatus')
+            ->setParameter('id', $id)
+            ->setParameter('activeStatus', 'deleted')
+            ->getQuery()
+            ->getOneOrNullResult();
         if (!$book) {
             return null;
         }
@@ -81,15 +81,15 @@ class BookService
     }
 
     // update book by id
-    public function updateBook(int $id,array $data): Book
+    public function updateBook(int $id, array $data): Book
     {
         $book = $this->getBookById($id);
         $book->setTitle(new Title($data['title']));
         $book->setAuthor(new Author($data['author']));
         $book->setIsbn(new Isbn($data['isbn']));
-        $book->setpublishedDate(\DateTime::createFromFormat('Y-m-d',$data['publisheddate']));
+        $book->setpublishedDate(\DateTime::createFromFormat('Y-m-d', $data['publisheddate']));
         $book->setStatus(Status::from($data['status']));
-        
+
         return $book;
     }
 
@@ -128,6 +128,6 @@ class BookService
         $this->entityManager->flush();
         return true;
     }
-    
+
 }
 ?>

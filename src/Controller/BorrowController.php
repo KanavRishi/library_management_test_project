@@ -12,11 +12,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class BorrowController extends AbstractController
 {
     private BorrowService $borrowService;
-    
+
 
     public function __construct(BorrowService $borrowService)
     {
-        $this->borrowService=$borrowService;
+        $this->borrowService = $borrowService;
     }
     // borrow history of books
     #[Route('/borrow/history', methods: ['GET'], name: 'borrow_history')]
@@ -25,7 +25,7 @@ class BorrowController extends AbstractController
         //get borrow history from getBorrowHistory method
         $borrowHistory = $this->borrowService->getBorrowHistory();
 
-        $responseData = array_map(function($borrow) {
+        $responseData = array_map(function ($borrow) {
             return [
                 'id' => $borrow->getId(),
                 'userId' => $borrow->getUserId()->getId(),
@@ -38,6 +38,6 @@ class BorrowController extends AbstractController
         return $this->json([
             'status' => 'success',
             'data' => $responseData
-        ],JsonResponse::HTTP_OK);
+        ], JsonResponse::HTTP_OK);
     }
 }

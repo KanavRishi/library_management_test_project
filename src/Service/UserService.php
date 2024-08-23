@@ -18,21 +18,21 @@ class UserService
     private UserRepository $userRepository;
     private $validator;
 
-    public function __construct(EntityManagerInterface $entityManager,ValidatorInterface $validator, UserRepository $userRepository)
+    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepository $userRepository)
     {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
-        $this->validator=$validator;
+        $this->validator = $validator;
     }
 
     // Mthod for creating user object
-    public function createUser(string $name,string $email,string $password,$role): User
+    public function createUser(string $name, string $email, string $password, $role): User
     {
         // dd($user);
-        $user = new User(new Name($name),new Email($email),$password,$role);
-        
+        $user = new User(new Name($name), new Email($email), $password, $role);
+
         return $user;
-        
+
     }
 
     // Method for save user info
@@ -51,12 +51,11 @@ class UserService
     }
 
     // Update user
-    public function updateUser($id,$data): User
+    public function updateUser($id, $data): User
     {
         // check if user exist or not
         $user = $this->getUserById($id);
-        if(!$user)
-        {
+        if (!$user) {
             throw new \Exception("User not found");
         }
         $user->setName(new Name($data['name']));
@@ -70,7 +69,7 @@ class UserService
     // getUser by id method
     public function getUserById(int $id): ?User
     {
-        return $this->userRepository->findOneBy(['id'=>$id,'deletionStatus'=>'active']);
+        return $this->userRepository->findOneBy(['id' => $id, 'deletionStatus' => 'active']);
     }
 
     // Method for list all user details

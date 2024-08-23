@@ -81,69 +81,69 @@ class BookController extends AbstractController
     // Update Book
     #[Route('/book/{id}', methods: ['PUT'], name: 'update_book')]
     public function updateBook(Request $request, $id, ValidatorInterface $validator): JsonResponse
-{
-    try {
-        // Validate ID
-        if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
-            throw new \InvalidArgumentException('Invalid ID provided.');
-        }
-
-        // Get Book by ID
-        $checkBook = $this->bookService->getBookById($id);
-        if (empty($checkBook)) {
-            throw new \Exception('Book does not exist.');
-        }
-
-        // Decode request data
-        $data = json_decode($request->getContent(), true);
-        if ($data === null) {
-            throw new \InvalidArgumentException('Invalid request data.');
-        }
-
-        // Validate required fields
-        $requiredFields = ['title', 'author', 'isbn', 'status', 'publisheddate'];
-        foreach ($requiredFields as $field) {
-            if (!isset($data[$field])) {
-                throw new \InvalidArgumentException("Missing field: $field.");
+    {
+        try {
+            // Validate ID
+            if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
+                throw new \InvalidArgumentException('Invalid ID provided.');
             }
-        }
 
-        // Validate Status
-        try {
-            $status = Status::from($data['status']);
-        } catch (\ValueError $e) {
-            throw new \InvalidArgumentException('Invalid status value.');
-        }
+            // Get Book by ID
+            $checkBook = $this->bookService->getBookById($id);
+            if (empty($checkBook)) {
+                throw new \Exception('Book does not exist.');
+            }
 
-        // Validate Published Date
-        try {
-            $publishedDate = new \DateTimeImmutable($data['publisheddate']);
+            // Decode request data
+            $data = json_decode($request->getContent(), true);
+            if ($data === null) {
+                throw new \InvalidArgumentException('Invalid request data.');
+            }
+
+            // Validate required fields
+            $requiredFields = ['title', 'author', 'isbn', 'status', 'publisheddate'];
+            foreach ($requiredFields as $field) {
+                if (!isset($data[$field])) {
+                    throw new \InvalidArgumentException("Missing field: $field.");
+                }
+            }
+
+            // Validate Status
+            try {
+                $status = Status::from($data['status']);
+            } catch (\ValueError $e) {
+                throw new \InvalidArgumentException('Invalid status value.');
+            }
+
+            // Validate Published Date
+            try {
+                $publishedDate = new \DateTimeImmutable($data['publisheddate']);
+            } catch (\Exception $e) {
+                throw new \InvalidArgumentException('Invalid date format. Expected format: Y-m-d.');
+            }
+
+            // Create or update the Book entity
+            $book = $this->bookService->updateBook($id, $data);
+            $this->bookService->saveBook($book);
+
+            return new JsonResponse([
+                'status' => 'success',
+                'message' => 'Book updated successfully.',
+            ], JsonResponse::HTTP_OK);
+
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+
         } catch (\Exception $e) {
-            throw new \InvalidArgumentException('Invalid date format. Expected format: Y-m-d.');
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        // Create or update the Book entity
-        $book = $this->bookService->updateBook($id, $data);
-        $this->bookService->saveBook($book);
-
-        return new JsonResponse([
-            'status' => 'success',
-            'message' => 'Book updated successfully.',
-        ], JsonResponse::HTTP_OK);
-
-    } catch (\InvalidArgumentException $e) {
-        return new JsonResponse([
-            'status' => 'error',
-            'message' => $e->getMessage(),
-        ], JsonResponse::HTTP_BAD_REQUEST);
-
-    } catch (\Exception $e) {
-        return new JsonResponse([
-            'status' => 'error',
-            'message' => 'An unexpected error occurred: ' . $e->getMessage(),
-        ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
     }
-}
 
 
     // All Books List
@@ -189,7 +189,7 @@ class BookController extends AbstractController
                 'message' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
 
-        } 
+        }
         // check whether book exist or not
         $book = $this->bookService->getBookById($id);
 
@@ -220,17 +220,17 @@ class BookController extends AbstractController
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
                 throw new \InvalidArgumentException('Invalid ID provided.');
             }
-        // get book by id 
-        
+            // get book by id 
+
             $book = $this->bookService->getBookById($id);
             if (empty($book)) {
                 throw new \Exception("Book does not exist");
             }
-        
-        $book->setStatus(Status::DELETED);
 
-        // Update status to deleted
-        
+            $book->setStatus(Status::DELETED);
+
+            // Update status to deleted
+
             $this->bookService->saveBook($book);
             return new JsonResponse(["message" => "Book Deleted Successfully:"], JsonResponse::HTTP_OK);
         } catch (ValidatorException $e) {
@@ -245,7 +245,7 @@ class BookController extends AbstractController
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
-    
+
         }
     }
 }
