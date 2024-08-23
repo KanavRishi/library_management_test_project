@@ -104,7 +104,7 @@ class BookServiceTest extends TestCase
     {
         $book = $this->createMock(Book::class);
         $books = [$book];
-        
+
         // Mock the QueryBuilder, Query, and other chained calls
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $query = $this->createMock(\Doctrine\ORM\Query::class);
@@ -143,7 +143,7 @@ class BookServiceTest extends TestCase
     {
         $book = $this->createMock(Book::class);
         $books = [$book];
-        
+
         // Mock the QueryBuilder, Query, and other chained calls
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $query = $this->createMock(\Doctrine\ORM\Query::class);

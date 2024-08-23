@@ -13,10 +13,10 @@ class BorrowTest extends TestCase
     public function testBorrowEntity()
     {
         $cache = $this->createMock(CacheInterface::class);
-        
+
         // Set up Borrow entity
         $borrow = new Borrow();
-        
+
         $user = $this->createMock(User::class);
         $borrow->setUserid($user);
         $this->assertSame($user, $borrow->getUserid());
@@ -45,7 +45,7 @@ class BorrowTest extends TestCase
             ->willReturn($borrow);
 
         // Retrieve from cache and assert
-        $cachedBorrow = $cache->get($cacheKey, function() use ($borrow) {
+        $cachedBorrow = $cache->get($cacheKey, function () use ($borrow) {
             return $borrow;
         });
         $this->assertSame($borrow, $cachedBorrow);

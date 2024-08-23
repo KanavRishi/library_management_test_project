@@ -18,8 +18,8 @@ class UserControllerTest extends WebTestCase
             'email' => $faker->email(),
             'role' => 'Member',
             'password' => $faker->password(),
-            'created_at'=>new \DateTimeImmutable('now'),
-            'updated_at'=>new \DateTimeImmutable('now')
+            'created_at' => new \DateTimeImmutable('now'),
+            'updated_at' => new \DateTimeImmutable('now')
         ]));
         // dd($client->getResponse());
         // Assert the HTTP status code is 201 (Created)
@@ -35,15 +35,15 @@ class UserControllerTest extends WebTestCase
         $client = static::createClient();
         $entityManager = static::getContainer()->get('doctrine')->getManager();
         $getId = $entityManager->getRepository(User::class)->findOneBy([], ['id' => 'DESC']);
-        $id=$getId->getId();
+        $id = $getId->getId();
         // Send a PUT request to update details of the user with ID 1
-        $client->request('PUT', '/user/'.$id, [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('PUT', '/user/' . $id, [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'name' => $faker->name(),
             'email' => $faker->email(),
             'role' => 'Admin',
             'password' => $faker->password(),
-            'created_at'=>new \DateTimeImmutable('now'),
-            'updated_at'=>new \DateTimeImmutable('now')
+            'created_at' => new \DateTimeImmutable('now'),
+            'updated_at' => new \DateTimeImmutable('now')
         ]));
         // Assert the HTTP status code is 200 (OK)
         $this->assertEquals(201, $client->getResponse()->getStatusCode());
@@ -70,9 +70,9 @@ class UserControllerTest extends WebTestCase
         $client = static::createClient();
         $entityManager = static::getContainer()->get('doctrine')->getManager();
         $getId = $entityManager->getRepository(User::class)->findOneBy([], ['id' => 'DESC']);
-        $id=$getId->getId();
+        $id = $getId->getId();
         // Send a GET request to fetch details of a user with ID 1
-        $client->request('GET', '/user/'.$id.'/');
+        $client->request('GET', '/user/' . $id . '/');
 
         // Assert the HTTP status code is 200 (OK)
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
@@ -86,9 +86,9 @@ class UserControllerTest extends WebTestCase
         $client = static::createClient();
         $entityManager = static::getContainer()->get('doctrine')->getManager();
         $getId = $entityManager->getRepository(User::class)->findOneBy([], ['id' => 'DESC']);
-        $id=$getId->getId();
+        $id = $getId->getId();
         // Send a DELETE request to remove the user with ID 1
-        $client->request('DELETE', 'user/delete/'.$id);
+        $client->request('DELETE', 'user/delete/' . $id);
 
         // Assert the HTTP status code is 204 (No Content)
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
@@ -115,7 +115,7 @@ class UserControllerTest extends WebTestCase
     public function testReturnBook()
     {
         $client = static::createClient();
-        
+
         // Send a POST request to the /borrows endpoint with the borrow ID
         $client->request('POST', '/borrow/return/4', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'returnDate' => '2023-07-10'

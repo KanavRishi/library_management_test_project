@@ -96,20 +96,20 @@ class UserServiceTest extends TestCase
         $user = $this->createMock(User::class);
         $this->userRepository
             ->method('findOneBy')
-            ->with(['id' => '4','deletionStatus'=>'active'])
+            ->with(['id' => '4', 'deletionStatus' => 'active'])
             ->willReturn($user);
-        
-        $user->expects($this->once())
-             ->method('setName')
-             ->with(new Name($data['name']));
-        
-        $user->expects($this->once())
-             ->method('setEmail')
-             ->with(new Email($data['email']));
 
         $user->expects($this->once())
-             ->method('setRole')
-             ->with(Role::from($data['role']));
+            ->method('setName')
+            ->with(new Name($data['name']));
+
+        $user->expects($this->once())
+            ->method('setEmail')
+            ->with(new Email($data['email']));
+
+        $user->expects($this->once())
+            ->method('setRole')
+            ->with(Role::from($data['role']));
 
         $updatedUser = $this->userService->updateUser($id, $data);
         // dd($data);
