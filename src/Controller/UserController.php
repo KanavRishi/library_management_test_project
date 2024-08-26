@@ -42,19 +42,21 @@ class UserController extends AbstractController
             $password = password_hash($data['password'], PASSWORD_BCRYPT);
 
             // validate role 
-            try {
-                $user = $this->userService->createUser($data['name'], $data['email'], $password, $data['role']);
-                $role = Role::from($data['role']);
-            } catch (\ValueError $e) {
-                return new JsonResponse([
-                    'status' => 'error',
-                    'message' => 'Invalid Role value'
-                ], JsonResponse::HTTP_BAD_REQUEST);
+           
+            $user = $this->userService->createUser($data['name'], $data['email'], $password, $data['role']);
+            if(!$user)
+            {
+                throw new \Exception('User Not Created');
+            }
+            // check role value    
+            $validRoles = array_map(fn($role) => $role->value, Role::cases());
+            if (!in_array($data['role'], $validRoles, true)) {
+                throw new \InvalidArgumentException('Invalid Role Value');
             }
 
-            // save user and check for exceptions
+             // save user and check for exceptions
+             $this->userService->saveUser($user);
 
-            $this->userService->saveUser($user);
             return new JsonResponse([
                 'status' => 'success',
                 'message' => 'User created successfully'
@@ -75,7 +77,6 @@ class UserController extends AbstractController
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
-
         }
     }
 
@@ -103,14 +104,10 @@ class UserController extends AbstractController
                 throw new \Exception('Please Input all values.');
             }
 
-            // check role value
-            try {
-                $role = Role::from($data['role']);
-            } catch (\ValueError $e) {
-                return new JsonResponse([
-                    'status' => 'error',
-                    'message' => 'Invalid role value'
-                ], JsonResponse::HTTP_BAD_REQUEST);
+            // check role value    
+            $validRoles = array_map(fn($role) => $role->value, Role::cases());
+            if (!in_array($data['role'], $validRoles, true)) {
+                throw new \InvalidArgumentException('Invalid Role Value');
             }
 
             // create user object using updateUser method
@@ -179,14 +176,12 @@ class UserController extends AbstractController
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
-        // dd($user);
         $responseData = [
             'status' => 'success',
             'data' => [
                 'id' => $user->getId(),
                 'name' => $user->getName(),
                 'email' => $user->getEmail(),
-                'password' => $user->getPassword(),
                 'role' => $user->getRole()->value
             ]
         ];
@@ -239,7 +234,6 @@ class UserController extends AbstractController
             // getBookById check if the book exist or not
 
             $book = $this->bookService->getBookById($data['bookid']);
-            // dd($book);
             if (!$book) {
                 throw new \Exception("Book not found");
             }
@@ -267,7 +261,7 @@ class UserController extends AbstractController
         $book_stat = $this->bookService->updateBookStatus($book);
         if ($book_stat) {
 
-            $check = $this->borrowService->borrowBook($data);
+            $check = $this->userService->borrowBook($data);
             if ($check) {
                 return new JsonResponse([
                     "status" => "Book Borrowed Successfully"
@@ -297,7 +291,7 @@ class UserController extends AbstractController
             }
 
             // Return Book logic
-            $this->borrowService->returnBook($borrow);
+            $this->userService->returnBook($borrow);
             $getBookId = $this->bookService->getBookById($borrow->getBookid()->getId());
             if (!($getBookId)) {
                 throw new \Exception("Book Not Found");

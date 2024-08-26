@@ -11,18 +11,22 @@ use App\ValueObject\Name;
 use App\ValueObject\Email;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
+use App\Entity\Borrow;
+use App\Service\BookService;
 
 class UserService
 {
     private EntityManagerInterface $entityManager;
     private UserRepository $userRepository;
     private $validator;
+    private $bookService;
 
-    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepository $userRepository)
+    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepository $userRepository,BookService $bookService)
     {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
         $this->validator = $validator;
+        $this->bookService = $bookService;
     }
 
     // Mthod for creating user object
@@ -76,6 +80,31 @@ class UserService
     public function listUsers(): array
     {
         return $this->userRepository->findAll();
+    }
+
+    // Business logic for borrow book by userid and bookid
+    public function borrowBook($data): bool
+    {
+        $user = $this->getUserById($data['userid']);
+        $book = $this->bookService->getBookById($data['bookid']);
+        $borrow = new Borrow();
+        $borrow->setUserid($user);
+        $borrow->setBookid($book);
+        $borrow->setBorrowDate((new \DateTimeImmutable('now')));
+
+        $this->entityManager->persist($borrow);
+        $this->entityManager->flush();
+        return true;
+    }
+    //method for return book
+    public function returnBook(Borrow $borrow): Borrow
+    {
+        $borrow->setReturnDate((new \DateTimeImmutable('now')));
+
+        $this->entityManager->persist($borrow);
+        $this->entityManager->flush();
+
+        return $borrow;
     }
 
 }

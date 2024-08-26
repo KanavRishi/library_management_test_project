@@ -27,7 +27,6 @@ class BookService
     // method for creating book object 
     public function createBook(string $author, string $title, string $isbn, string $status, \DateTime $publishedDate): Book
     {
-        // dd($publishedDate);
         $book = new Book(new Author($author), new Title($title), new Isbn($isbn), $publishedDate, $status);
 
         return $book;
@@ -36,7 +35,6 @@ class BookService
     // method for checking validations and persisting book
     public function saveBook(Book $book): bool
     {
-        // dd($book);
         $violations = $this->validator->validate($book);
 
         if (count($violations) > 0) {
@@ -66,7 +64,6 @@ class BookService
     // method for fetching single book by id
     public function getBookById(int $id): ?Book
     {
-        // dd($id);
         $book = $this->bookRepository->createQueryBuilder('b')
             ->where('b.id = :id')
             ->andWhere('b.status != :activeStatus')
@@ -98,7 +95,6 @@ class BookService
     {
         $status = Status::from("borrowed");
         $book->setStatus($status);
-        // dd($book);
         $this->entityManager->persist($book);
         $this->entityManager->flush();
         return true;
@@ -108,7 +104,6 @@ class BookService
     public function validate(Book $book): void
     {
         $violations = $this->validator->validate($book);
-        // dd($violations);
 
         if (count($violations) > 0) {
             $errors = [];
@@ -122,7 +117,6 @@ class BookService
     // Method for changing book status when a book is returned
     public function changeBookStatus(Book $book): bool
     {
-        // dd($book);
         $book->setStatus(Status::from('available'));
         $this->entityManager->persist($book);
         $this->entityManager->flush();

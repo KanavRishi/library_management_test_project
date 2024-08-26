@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use App\Service\BookService;
-use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 
@@ -31,27 +30,25 @@ class BookController extends AbstractController
     #[Route('/book', methods: ['POST'], name: 'add_book')]
     public function addBook(Request $request, ValidatorInterface $validator): JsonResponse
     {
+        try { 
         $data = json_decode($request->getContent(), true);
-        // check all variables
-        try {
-            $status = Status::from($data['status']);
-        } catch (\ValueError $e) {
-            return new JsonResponse([
-                'status' => 'error',
-                'message' => 'Invalid status value'
-            ], JsonResponse::HTTP_BAD_REQUEST);
+        
+            // Validate status
+        $validStatuses = array_map(fn($status) => $status->value, Status::cases());
+        if (!in_array($data['status'], $validStatuses, true)) {
+            throw new \InvalidArgumentException('Invalid Status Value');
         }
+
         if (!isset($data['title']) || !isset($data['author']) || !isset($data['isbn']) || !isset($data['status']) || !isset($data['publisheddate'])) {
-            return new JsonResponse(["message" => "Please input all values"], JsonResponse::HTTP_BAD_REQUEST);
+            throw new \Exception('Please Input all fields');
         }
 
         // Proceed with creating and saving the book and validations
-        try {
+        
             $publishedDate = new \DateTime($data['publisheddate']);
-
+            $status = Status::from($data['status']);
             // Create and save the book using the service
             $book = $this->bookService->createBook($data['author'], $data['title'], $data['isbn'], $data['status'], $publishedDate);
-            // dd($book);
             $this->bookService->saveBook($book);
 
             return new JsonResponse([
@@ -69,6 +66,13 @@ class BookController extends AbstractController
             ], JsonResponse::HTTP_CONFLICT);
 
         } catch (\Exception $e) {
+            // Validation for other unexpected errors
+            $this->logger->error('Unexpected error: ' . $e->getMessage());
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => 'An unexpected error occurred: ' . $e->getMessage(),
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        } catch (\InvalidArgumentException $e) {
             // Validation for other unexpected errors
             $this->logger->error('Unexpected error: ' . $e->getMessage());
             return new JsonResponse([
@@ -109,18 +113,13 @@ class BookController extends AbstractController
             }
 
             // Validate Status
-            try {
-                $status = Status::from($data['status']);
-            } catch (\ValueError $e) {
-                throw new \InvalidArgumentException('Invalid status value.');
+            $validStatuses = array_map(fn($status) => $status->value, Status::cases());
+            if (!in_array($data['status'], $validStatuses, true)) {
+                throw new \InvalidArgumentException('Invalid Status Value');
             }
 
             // Validate Published Date
-            try {
-                $publishedDate = new \DateTimeImmutable($data['publisheddate']);
-            } catch (\Exception $e) {
-                throw new \InvalidArgumentException('Invalid date format. Expected format: Y-m-d.');
-            }
+             $publishedDate = new \DateTime($data['publisheddate']);
 
             // Create or update the Book entity
             $book = $this->bookService->updateBook($id, $data);
@@ -141,7 +140,7 @@ class BookController extends AbstractController
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
-            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+            ], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 
