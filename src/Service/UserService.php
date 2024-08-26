@@ -32,7 +32,7 @@ class UserService
     // Mthod for creating user object
     public function createUser(string $name, string $email, string $password, $role): User
     {
-        // dd($user);
+
         $user = new User(new Name($name), new Email($email), $password, $role);
 
         return $user;
@@ -105,6 +105,12 @@ class UserService
         $this->entityManager->flush();
 
         return $borrow;
+    }
+    // Method to fetch username
+    public function getUserName($id)
+    {
+        $userName = $this->userRepository->find($id);
+        return $userName->getName();
     }
 
 }

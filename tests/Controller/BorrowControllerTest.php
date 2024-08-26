@@ -11,7 +11,6 @@ class BorrowControllerTest extends WebTestCase
         $client = static::createClient();
         // Send a GET request to the /history endpoint
         $client->request('GET', '/borrow/history');
-        // dd($client->getResponse());
         // Assert that the response status code is 200 (OK)
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
         // Assert that the response content is JSON

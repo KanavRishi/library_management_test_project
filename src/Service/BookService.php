@@ -122,6 +122,11 @@ class BookService
         $this->entityManager->flush();
         return true;
     }
-
+    // Fetch Book Title record
+    public function getBookTitle($id)
+    {
+        $bookTitle = $this->bookRepository->find($id);
+        return $bookTitle->getTitle();
+    }
 }
 ?>

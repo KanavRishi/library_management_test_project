@@ -8,7 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 class BookControllerTest extends WebTestCase
 {
     private $entityManager;
-    // Test case to add a new book via API
+    // Test case to add a new book
     public function testAddNewBook()
     {
         $faker = Factory::create();
@@ -21,7 +21,6 @@ class BookControllerTest extends WebTestCase
             'publisheddate' => $faker->date(),
             'status' => 'available'
         ]));
-        // dd($faker->date());
         // Assert the HTTP status code is 201 (Created)
         $this->assertEquals(201, $client->getResponse()->getStatusCode());
         // Assert the response content is JSON
@@ -35,7 +34,6 @@ class BookControllerTest extends WebTestCase
         $client = static::createClient();
         $entityManager = static::getContainer()->get('doctrine')->getManager();
         $getId = $entityManager->getRepository(Book::class)->findOneBy([], ['id' => 'DESC']);
-        // dd();
 
         // Send a PUT request to update details of the book with ID 1
         $client->request(
@@ -65,7 +63,6 @@ class BookControllerTest extends WebTestCase
         $client = static::createClient();
         // Send a GET request to fetch the list of books
         $client->request('GET', '/book');
-        // dd($client->getResponse());
         // Assert the HTTP status code is 200 (OK)
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
         // Assert the response content is JSON
@@ -81,7 +78,6 @@ class BookControllerTest extends WebTestCase
         $id = $getId->getId();
         // Send a GET request to fetch details of a book with ID 1
         $client->request('GET', '/book/' . $getId->getId() . '/');
-        // dd($client->getResponse());
         // Assert the HTTP status code is 200 (OK)
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
         // Assert the response content is JSON
@@ -98,7 +94,6 @@ class BookControllerTest extends WebTestCase
         // Send a DELETE request to remove the book with ID 1
         $client->request('DELETE', '/book/delete/' . $id);
         // Assert the HTTP status code is 200
-        // dd($client->getResponse());
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
     }
 }

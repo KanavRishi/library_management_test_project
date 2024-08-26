@@ -42,7 +42,6 @@ class UserTest extends TestCase
                 })
             )
             ->willReturn($user);
-        // dd($cache);
         // Use the cache's get method to either retrieve or store the user
         $retrievedUser = $cache->get($cacheKey, function () use ($user) {
             return $user;

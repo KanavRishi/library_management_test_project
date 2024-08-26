@@ -30,7 +30,6 @@ class UserServiceTest extends TestCase
         $this->validator = $this->createMock(ValidatorInterface::class);
         $this->userRepository = $this->createMock(UserRepository::class);
         $this->bookService = $this->createMock(BookService::class);
-        // $this->userService = $this->createMock(UserService::class);
 
         $this->userService = new UserService(
             $this->entityManager,
@@ -48,7 +47,6 @@ class UserServiceTest extends TestCase
         $role = 'Member';
 
         $user = $this->userService->createUser($name, $email, $password, $role);
-        // dd($user);
         $this->assertInstanceOf(User::class, $user);
         $this->assertEquals($name, $user->getName());
         $this->assertEquals($email, $user->getEmail());
@@ -99,7 +97,6 @@ class UserServiceTest extends TestCase
             'password' => 'newpassword@123',
             'role' => 'Admin'
         ];
-        // dd($id);
         $user = $this->createMock(User::class);
         $this->userRepository
             ->method('findOneBy')
@@ -119,7 +116,6 @@ class UserServiceTest extends TestCase
             ->with(Role::from($data['role']));
 
         $updatedUser = $this->userService->updateUser($id, $data);
-        // dd($data);
         $this->assertInstanceOf(User::class, $updatedUser);
     }
 

@@ -24,7 +24,6 @@ class BookTest extends TestCase
 
         // Simulate storing and retrieving the book in cache
         $cacheKey = 'book_' . $book->getId();
-        // dd($cacheKey);
         // Configure the cache mock to expect the 'get' method call
         $cache->expects($this->once())
             ->method('get')
@@ -41,7 +40,6 @@ class BookTest extends TestCase
         $retrievedBook = $cache->get($cacheKey, function () use ($book) {
             return $book;
         });
-        // dd($retrievedBook);
         // Assert that the retrieved book is the same as the stored book
         $this->assertSame($book, $retrievedBook);
     }

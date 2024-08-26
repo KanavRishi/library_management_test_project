@@ -21,7 +21,6 @@ class UserControllerTest extends WebTestCase
             'created_at' => new \DateTimeImmutable('now'),
             'updated_at' => new \DateTimeImmutable('now')
         ]));
-        // dd($client->getResponse());
         // Assert the HTTP status code is 201 (Created)
         $this->assertEquals(201, $client->getResponse()->getStatusCode());
         // Assert the response content is JSON
@@ -103,7 +102,6 @@ class UserControllerTest extends WebTestCase
             'bookid' => 1,
             'borrowDate' => '2023-07-01'
         ]));
-        // dd($client->getResponse());
         // Assert that the response status code is 405
         $this->assertEquals(400, $client->getResponse()->getStatusCode());
 

@@ -50,7 +50,6 @@ class BookServiceTest extends TestCase
         $publishedDate = new \DateTime('2024-01-01');
 
         $book = $this->bookService->createBook($author, $title, $isbn, $status, $publishedDate);
-        // dd($book);
 
         $this->assertInstanceOf(Book::class, $book);
         $this->assertEquals($author, $book->getAuthor());
@@ -105,17 +104,17 @@ class BookServiceTest extends TestCase
         $book = $this->createMock(Book::class);
         $books = [$book];
 
-        // Mock the QueryBuilder, Query, and other chained calls
+        // Mock the QueryBuilder, Query
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $query = $this->createMock(\Doctrine\ORM\Query::class);
 
-        // Mock the repository method that returns the QueryBuilder
+        // Mock the repository method 
         $this->bookRepository
             ->method('createQueryBuilder')
             ->with('b')
             ->willReturn($queryBuilder);
 
-        // Mock the chainable methods of the QueryBuilder
+        // Mock the methods of the QueryBuilder
         $queryBuilder
             ->method('where')
             ->with('b.status != :deletedStatus')
@@ -144,7 +143,7 @@ class BookServiceTest extends TestCase
         $book = $this->createMock(Book::class);
         $books = [$book];
 
-        // Mock the QueryBuilder, Query, and other chained calls
+        // Mock the QueryBuilder, Query
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $query = $this->createMock(\Doctrine\ORM\Query::class);
 
