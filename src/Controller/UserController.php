@@ -42,10 +42,9 @@ class UserController extends AbstractController
             $password = password_hash($data['password'], PASSWORD_BCRYPT);
 
             // validate role 
-           
+
             $user = $this->userService->createUser($data['name'], $data['email'], $password, $data['role']);
-            if(!$user)
-            {
+            if (!$user) {
                 throw new \Exception('User Not Created');
             }
             // check role value    
@@ -54,8 +53,8 @@ class UserController extends AbstractController
                 throw new \InvalidArgumentException('Invalid Role Value');
             }
 
-             // save user and check for exceptions
-             $this->userService->saveUser($user);
+            // save user and check for exceptions
+            $this->userService->saveUser($user);
 
             return new JsonResponse([
                 'status' => 'success',
@@ -179,11 +178,11 @@ class UserController extends AbstractController
         $responseData = [
             'status' => 'success',
             'data' => [
-                'id' => $user->getId(),
-                'name' => $user->getName(),
-                'email' => $user->getEmail(),
-                'role' => $user->getRole()->value
-            ]
+                    'id' => $user->getId(),
+                    'name' => $user->getName(),
+                    'email' => $user->getEmail(),
+                    'role' => $user->getRole()->value
+                ]
         ];
         return $this->json($responseData);
     }

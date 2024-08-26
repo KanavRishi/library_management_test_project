@@ -30,21 +30,21 @@ class BookController extends AbstractController
     #[Route('/book', methods: ['POST'], name: 'add_book')]
     public function addBook(Request $request, ValidatorInterface $validator): JsonResponse
     {
-        try { 
-        $data = json_decode($request->getContent(), true);
-        
+        try {
+            $data = json_decode($request->getContent(), true);
+
             // Validate status
-        $validStatuses = array_map(fn($status) => $status->value, Status::cases());
-        if (!in_array($data['status'], $validStatuses, true)) {
-            throw new \InvalidArgumentException('Invalid Status Value');
-        }
+            $validStatuses = array_map(fn($status) => $status->value, Status::cases());
+            if (!in_array($data['status'], $validStatuses, true)) {
+                throw new \InvalidArgumentException('Invalid Status Value');
+            }
 
-        if (!isset($data['title']) || !isset($data['author']) || !isset($data['isbn']) || !isset($data['status']) || !isset($data['publisheddate'])) {
-            throw new \Exception('Please Input all fields');
-        }
+            if (!isset($data['title']) || !isset($data['author']) || !isset($data['isbn']) || !isset($data['status']) || !isset($data['publisheddate'])) {
+                throw new \Exception('Please Input all fields');
+            }
 
-        // Proceed with creating and saving the book and validations
-        
+            // Proceed with creating and saving the book and validations
+
             $publishedDate = new \DateTime($data['publisheddate']);
             $status = Status::from($data['status']);
             // Create and save the book using the service
@@ -119,7 +119,7 @@ class BookController extends AbstractController
             }
 
             // Validate Published Date
-             $publishedDate = new \DateTime($data['publisheddate']);
+            $publishedDate = new \DateTime($data['publisheddate']);
 
             // Create or update the Book entity
             $book = $this->bookService->updateBook($id, $data);

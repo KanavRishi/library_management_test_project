@@ -21,7 +21,7 @@ class UserService
     private $validator;
     private $bookService;
 
-    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepository $userRepository,BookService $bookService)
+    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator, UserRepository $userRepository, BookService $bookService)
     {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
@@ -108,6 +108,4 @@ class UserService
     }
 
 }
-
-
 ?>

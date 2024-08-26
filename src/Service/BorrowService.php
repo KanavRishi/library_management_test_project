@@ -25,7 +25,7 @@ class BorrowService
         $this->bookService = $bookService;
         $this->userService = $userService;
     }
-    
+
     // Method for fetching borrow history
     public function getBorrowHistory(): array
     {
