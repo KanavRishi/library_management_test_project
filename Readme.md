@@ -16,7 +16,7 @@ Before you begin, ensure you have the following software installed:
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/KanavRishi/library-management-project.git
+   git clone https://github.com/KanavRishi/library_management_test_project.git
 
 2. **Change the directory**
    ```bash
