@@ -63,7 +63,7 @@ Here’s a sample configuration for the .env.local file:
    Copy code
    APP_ENV=dev
    APP_DEBUG=true
-   DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_system"
+   DATABASE_URL="mysql://username:password@127.0.0.1:3306/library_management_test_project"
    ```
 
 Replace username and password with your MySQL credentials.

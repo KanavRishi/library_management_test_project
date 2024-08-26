@@ -38,13 +38,20 @@ class BookControllerTest extends WebTestCase
         // dd();
 
         // Send a PUT request to update details of the book with ID 1
-        $client->request('PUT', '/book/' . $getId->getId(), [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
-            'title' => $faker->sentence(),
-            'author' => $faker->name(),
-            'isbn' => $faker->isbn13(),
-            'publisheddate' => $faker->date(),
-            'status' => 'available'
-        ]));
+        $client->request(
+            'PUT',
+            '/book/' . $getId->getId(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'title' => $faker->sentence(),
+                'author' => $faker->name(),
+                'isbn' => $faker->isbn13(),
+                'publisheddate' => $faker->date(),
+                'status' => 'available'
+            ])
+        );
 
         // Assert the HTTP status code is 200 (OK)
         $this->assertEquals(200, $client->getResponse()->getStatusCode());

@@ -39,7 +39,10 @@ class BookController extends AbstractController
                 throw new \InvalidArgumentException('Invalid Status Value');
             }
 
-            if (!isset($data['title']) || !isset($data['author']) || !isset($data['isbn']) || !isset($data['status']) || !isset($data['publisheddate'])) {
+            if (
+                !isset($data['title']) || !isset($data['author']) || !isset($data['isbn']) || !isset($data['status'])
+                || !isset($data['publisheddate'])
+            ) {
                 throw new \Exception('Please Input all fields');
             }
 
@@ -48,7 +51,13 @@ class BookController extends AbstractController
             $publishedDate = new \DateTime($data['publisheddate']);
             $status = Status::from($data['status']);
             // Create and save the book using the service
-            $book = $this->bookService->createBook($data['author'], $data['title'], $data['isbn'], $data['status'], $publishedDate);
+            $book = $this->bookService->createBook(
+                $data['author'],
+                $data['title'],
+                $data['isbn'],
+                $data['status'],
+                $publishedDate
+            );
             $this->bookService->saveBook($book);
 
             return new JsonResponse([
@@ -65,14 +74,14 @@ class BookController extends AbstractController
                 'message' => 'A book with this ISBN already exists.',
             ], JsonResponse::HTTP_CONFLICT);
 
-        } catch (\Exception $e) {
+        } catch (\InvalidArgumentException $e) {
             // Validation for other unexpected errors
             $this->logger->error('Unexpected error: ' . $e->getMessage());
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
-        } catch (\InvalidArgumentException $e) {
+        } catch (\Exception $e) {
             // Validation for other unexpected errors
             $this->logger->error('Unexpected error: ' . $e->getMessage());
             return new JsonResponse([
@@ -143,7 +152,6 @@ class BookController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
-
 
     // All Books List
     #[Route('/book', methods: ["GET"], name: 'list_book')]
@@ -234,17 +242,16 @@ class BookController extends AbstractController
             return new JsonResponse(["message" => "Book Deleted Successfully:"], JsonResponse::HTTP_OK);
         } catch (ValidatorException $e) {
             return new JsonResponse(["message" => "Unexpected Error:" . $e->getMessage()], JsonResponse::HTTP_CONFLICT);
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], JsonResponse::HTTP_BAD_REQUEST);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
-
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 }

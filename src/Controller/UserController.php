@@ -18,14 +18,12 @@ class UserController extends AbstractController
 {
     private UserService $userService;
     private BookService $bookService;
-    private BorrowService $borrowService;
     private BorrowRepository $borrowRepository;
 
     public function __construct(UserService $userService, BookService $bookService, BorrowService $borrowService, BorrowRepository $borrowRepository)
     {
         $this->userService = $userService;
         $this->bookService = $bookService;
-        $this->borrowService = $borrowService;
         $this->borrowRepository = $borrowRepository;
     }
     //  Create User controller
@@ -66,15 +64,15 @@ class UserController extends AbstractController
                 'status' => 'error',
                 'message' => 'A User with this email already exists.'
             ], JsonResponse::HTTP_CONFLICT);
-        } catch (\Exception $e) {
-            return new JsonResponse([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], JsonResponse::HTTP_BAD_REQUEST);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage(),
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage()
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
@@ -206,8 +204,6 @@ class UserController extends AbstractController
             $this->userService->saveUser($user);
             return new JsonResponse(["message" => "User Deleted Successfully:"], JsonResponse::HTTP_OK);
         } catch (\Exception $e) {
-            return new JsonResponse(["message" => "Unexpected Error:" . $e->getMessage()], JsonResponse::HTTP_CONFLICT);
-        } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage()
@@ -247,13 +243,13 @@ class UserController extends AbstractController
             if ($book->getStatus()->value == "borrowed") {
                 throw new \Exception("Book Already Borrowed");
             }
-        } catch (\Exception $e) {
-            return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         } catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'Book Already Borrowed.'
             ], JsonResponse::HTTP_CONFLICT);
+        } catch (\Exception $e) {
+            return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
 
         // update book status to borrowed from available
@@ -304,16 +300,16 @@ class UserController extends AbstractController
                 'status' => 'success',
                 'message' => "Book Returned Successfully"
             ], JsonResponse::HTTP_OK);
+        }  catch (\InvalidArgumentException $e) {
+            return new JsonResponse([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], JsonResponse::HTTP_BAD_REQUEST);
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage()
             ], JsonResponse::HTTP_NOT_FOUND);
-        } catch (\InvalidArgumentException $e) {
-            return new JsonResponse([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 }
