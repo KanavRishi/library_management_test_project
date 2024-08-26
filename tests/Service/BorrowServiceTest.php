@@ -68,7 +68,7 @@ class BorrowServiceTest extends TestCase
             ->expects($this->once())
             ->method('flush');
 
-        $result = $this->borrowService->borrowBook($data);
+        $result = $this->userService->borrowBook($data);
 
         $this->assertTrue($result);
     }
@@ -94,7 +94,7 @@ class BorrowServiceTest extends TestCase
             ->expects($this->once())
             ->method('flush');
 
-        $result = $this->borrowService->returnBook($borrow);
+        $result = $this->userService->returnBook($borrow);
 
         $this->assertSame($borrow, $result);
     }

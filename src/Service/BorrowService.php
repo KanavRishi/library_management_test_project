@@ -2,9 +2,7 @@
 namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Borrow;
 use App\Repository\BorrowRepository;
-use App\Enum\Status;
 use App\Service\UserService;
 use App\Service\BookService;
 use Symfony\Component\Validator\Validator\ValidatorInterface;

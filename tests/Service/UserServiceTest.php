@@ -6,6 +6,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Service\UserService;
 use App\Entity\User;
 use App\Enum\Role;
+use App\Service\BookService;
 use App\ValueObject\Name;
 use App\ValueObject\Email;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -19,17 +20,20 @@ class UserServiceTest extends TestCase
     private ValidatorInterface $validator;
     private UserRepository $userRepository;
     private UserService $userService;
+    private BookService $bookService;
 
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->validator = $this->createMock(ValidatorInterface::class);
         $this->userRepository = $this->createMock(UserRepository::class);
+        $this->bookService = $this->createMock(BookService::class);
 
         $this->userService = new UserService(
             $this->entityManager,
             $this->validator,
-            $this->userRepository
+            $this->userRepository,
+            $this->bookService
         );
     }
 
