@@ -36,68 +36,7 @@ class BorrowServiceTest extends TestCase
         );
     }
 
-    public function testBorrowBook(): void
-    {
-        $data = [
-            'userid' => 1,
-            'bookid' => 2,
-        ];
 
-        $user = $this->createMock(User::class);
-        $book = $this->createMock(Book::class);
-        $borrow = $this->createMock(Borrow::class);
-
-        $this->userService
-            ->expects($this->once())
-            ->method('getUserById')
-            ->with($data['userid'])
-            ->willReturn($user);
-
-        $this->bookService
-            ->expects($this->once())
-            ->method('getBookById')
-            ->with($data['bookid'])
-            ->willReturn($book);
-
-        $this->entityManager
-            ->expects($this->once())
-            ->method('persist')
-            ->with($this->isInstanceOf(Borrow::class));
-
-        $this->entityManager
-            ->expects($this->once())
-            ->method('flush');
-
-        $result = $this->userService->borrowBook($data);
-
-        $this->assertTrue($result);
-    }
-
-    public function testReturnBook()
-    {
-        $borrow = $this->createMock(Borrow::class);
-        $currentDate = new \DateTimeImmutable('now');
-
-        $borrow
-            ->expects($this->once())
-            ->method('setReturnDate')
-            ->with($this->callback(function ($date) use ($currentDate) {
-                return $date instanceof \DateTimeImmutable && $date->format('Y-m-d') === $currentDate->format('Y-m-d');
-            }));
-
-        $this->entityManager
-            ->expects($this->once())
-            ->method('persist')
-            ->with($borrow);
-
-        $this->entityManager
-            ->expects($this->once())
-            ->method('flush');
-
-        $result = $this->userService->returnBook($borrow);
-
-        $this->assertSame($borrow, $result);
-    }
 
     public function testGetBorrowHistory()
     {

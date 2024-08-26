@@ -4,6 +4,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\UserRepository;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Service\UserService;
+use App\Entity\Book;
+use App\Entity\Borrow;
 use App\Entity\User;
 use App\Enum\Role;
 use App\Service\BookService;
@@ -28,6 +30,7 @@ class UserServiceTest extends TestCase
         $this->validator = $this->createMock(ValidatorInterface::class);
         $this->userRepository = $this->createMock(UserRepository::class);
         $this->bookService = $this->createMock(BookService::class);
+        // $this->userService = $this->createMock(UserService::class);
 
         $this->userService = new UserService(
             $this->entityManager,
@@ -145,5 +148,68 @@ class UserServiceTest extends TestCase
 
         $this->assertIsArray($result);
         $this->assertContainsOnlyInstancesOf(User::class, $result);
+    }
+
+    public function testBorrowBook(): void
+    {
+        $data = [
+            'userid' => 1,
+            'bookid' => 2,
+        ];
+
+        $user = $this->createMock(User::class);
+        $book = $this->createMock(Book::class);
+        $borrow = $this->createMock(Borrow::class);
+
+        $this->userRepository
+            ->expects($this->once())
+            ->method('findOneBy')
+            ->with(['id' => $data['userid'], 'deletionStatus' => 'active'])
+            ->willReturn($user);
+
+        $this->bookService
+            ->expects($this->once())
+            ->method('getBookById')
+            ->with($data['bookid'])
+            ->willReturn($book);
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->with($this->isInstanceOf(Borrow::class));
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $result = $this->userService->borrowBook($data);
+
+        $this->assertTrue($result);
+    }
+
+    public function testReturnBook()
+    {
+        $borrow = $this->createMock(Borrow::class);
+        $currentDate = new \DateTimeImmutable('now');
+
+        $borrow
+            ->expects($this->once())
+            ->method('setReturnDate')
+            ->with($this->callback(function ($date) use ($currentDate) {
+                return $date instanceof \DateTimeImmutable && $date->format('Y-m-d') === $currentDate->format('Y-m-d');
+            }));
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->with($borrow);
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $result = $this->userService->returnBook($borrow);
+
+        $this->assertSame($borrow, $result);
     }
 }
