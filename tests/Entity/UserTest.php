@@ -26,7 +26,7 @@ class UserTest extends KernelTestCase
 
         // Close the EntityManager after the test
         $this->entityManager->close();
-        $this->entityManager = null; 
+        $this->entityManager = null;
     }
 
     public function testUserPersistence(): void
@@ -44,13 +44,26 @@ class UserTest extends KernelTestCase
         $this->entityManager->flush();
 
         // Retrieve the User entity from the database
-        $retrievedUser = $this->entityManager->getRepository(User::class)->find($user->getId());
-
+        $retrievedUser = $this->entityManager->getRepository(User::class)->findByEmail($email);
+        // dd($retrievedUser);
         // Assert that the retrieved user matches the persisted user
-        $this->assertEquals($user->getName(), $retrievedUser->getName());
-        $this->assertEquals($user->getEmail(), $retrievedUser->getEmail());
-        $this->assertEquals($user->getPassword(), $retrievedUser->getPassword());
-        $this->assertEquals($user->getRole(), $retrievedUser->getRole());
-        $this->assertEquals($user->getDeletionStatus(), $retrievedUser->getDeletionStatus());
+        $this->assertSame($user, $retrievedUser);
+
+        // Step 4: Update the User's email and persist the changes
+        $newEmail = new Email($faker->email());
+        $retrievedUser->setEmail($newEmail);
+        $this->entityManager->flush();
+
+        // Retrieve the updated user and verify the title was updated
+        $updatedUser = $this->entityManager->getRepository(User::class)->findByEmail($newEmail);
+        $this->assertEquals($newEmail, $updatedUser->getEmail());
+
+        // Step 5: Delete the user
+        $this->entityManager->remove($updatedUser);
+        $this->entityManager->flush();
+
+        // Verify that the user no longer exists in the database
+        $deletedUser = $this->entityManager->getRepository(User::class)->findByEmail($email);
+        $this->assertNull($deletedUser);
     }
 }

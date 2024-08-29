@@ -25,27 +25,45 @@ class BookTest extends KernelTestCase
 
         // close up after the test 
         $this->entityManager->close();
-        $this->entityManager = null; 
+        $this->entityManager = null;
     }
 
-    public function testBookPersistence(): void
+    public function testBook(): void
     {
         $faker = Factory::create();
-        // Create a Book object
-        $title = new Title("The Dark Knight Rises");
+
+        // Step 1: Create a Book object
+        $title = new Title($faker->sentence());
         $author = new Author("Kanav Singh");
         $isbn = new Isbn($faker->isbn13());
         $publishedDate = new \DateTime('1995-03-10');
         $book = new Book($author, $title, $isbn, $publishedDate);
 
-        // Insert the book to the database
+        // Step 2: Insert the book into the database
         $this->entityManager->persist($book);
         $this->entityManager->flush();
 
-        // Retrieve the book from the database to verify it was inserted
-        $retrievedBook = $this->entityManager->getRepository(Book::class)->find($book->getId());
-        
+        // Step 3: Retrieve the book from the database to verify it was inserted
+        $retrievedBook = $this->entityManager->getRepository(Book::class)->findByTitle($title);
+
         // Assert that the retrieved book is the same as the inserted book
         $this->assertSame($book, $retrievedBook);
+
+        // Step 4: Update the book's title and persist the changes
+        $newTitle = new Title($faker->sentence());
+        $retrievedBook->setTitle($newTitle);
+        $this->entityManager->flush();
+
+        // Retrieve the updated book and verify the title was updated
+        $updatedBook = $this->entityManager->getRepository(Book::class)->findByTitle($newTitle);
+        $this->assertEquals($newTitle, $updatedBook->getTitle());
+
+        // Step 5: Delete the book
+        $this->entityManager->remove($updatedBook);
+        $this->entityManager->flush();
+
+        // Verify that the book no longer exists in the database
+        $deletedBook = $this->entityManager->getRepository(Book::class)->findByTitle($title);
+        $this->assertNull($deletedBook);
     }
 }

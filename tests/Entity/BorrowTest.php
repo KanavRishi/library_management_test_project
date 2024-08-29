@@ -23,7 +23,7 @@ class BorrowTest extends KernelTestCase
         self::bootKernel();
         $this->entityManager = static::$kernel->getContainer()->get("doctrine")->getManager();
     }
-    
+
     public function tearDown(): void
     {
         parent::tearDown();
@@ -66,8 +66,25 @@ class BorrowTest extends KernelTestCase
         $retrievedBorrow = $this->entityManager->getRepository(Borrow::class)->find($borrow->getId());
 
         // Assert that the retrieved entity is the same as the stored one
-        $this->assertEquals($borrow->getUserid()->getName(), $retrievedBorrow->getUserid()->getName());
-        $this->assertEquals($borrow->getBookid()->getTitle(), $retrievedBorrow->getBookid()->getTitle());
-        $this->assertEquals($borrow->getBorrowDate(), $retrievedBorrow->getBorrowDate());
+        $this->assertSame($borrow, $retrievedBorrow);
+
+        // Now update the Borrow entity
+        $newReturnDate = new \DateTime('tomorrow');
+        $borrow->setReturnDate($newReturnDate);
+        $this->entityManager->flush();
+
+        // Retrieve the updated Borrow entity
+        $updatedBorrow = $this->entityManager->getRepository(Borrow::class)->find($borrow->getId());
+        $this->assertSame($newReturnDate, $updatedBorrow->getReturnDate());
+
+        $borrowId = $borrow->getId();
+
+        // Delete the Borrow entity
+        $this->entityManager->remove($updatedBorrow);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+        // Verify that the entity was deleted
+        $deletedBorrow = $this->entityManager->getRepository(Borrow::class)->find($borrowId);
+        $this->assertNull($deletedBorrow);
     }
 }
