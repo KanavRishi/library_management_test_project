@@ -7,7 +7,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Embeddable]
 class Isbn
 {
-    #[ORM\Column(type: 'string',unique:true,length:15)]
+    #[ORM\Column(type: 'string', unique: true, length: 15)]
     #[Assert\Regex(
         pattern: '/^\d+$/',
         message: "ISBN must contain only numbers."

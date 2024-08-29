@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Tests\Entity;
 
 use App\Entity\User;
@@ -7,48 +6,51 @@ use App\ValueObject\Name;
 use App\ValueObject\Email;
 use App\Enum\Role;
 use App\Enum\DeletionStatus;
-use PHPUnit\Framework\TestCase;
-use Symfony\Contracts\Cache\CacheInterface;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Faker\Factory;
 
-class UserTest extends TestCase
+class UserTest extends KernelTestCase
 {
-    public function testStoreUserInCache(): void
-    {
-        // Create a mock for the CacheInterface
-        $cache = $this->createMock(CacheInterface::class);
+    private ?EntityManagerInterface $entityManager = null;
 
-        $name = new Name("Kanav");
-        $email = new Email("kanav@gmail.com");
-        $password = "Secure@123";
+    protected function setUp(): void
+    {
+        self::bootKernel();
+        $this->entityManager = self::$kernel->getContainer()->get('doctrine')->getManager();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        // Close the EntityManager after the test
+        $this->entityManager->close();
+        $this->entityManager = null; 
+    }
+
+    public function testUserPersistence(): void
+    {
+        $faker = Factory::create();
+
+        // Create a User object
+        $name = new Name("Kanav Arora");
+        $email = new Email($faker->email());
+        $password = 'password123';
         $user = new User($name, $email, $password);
 
-        // $user->setValue($user,123);
+        // Persist the User entity to the database
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
-        $cacheKey = 'user_' . $user->getId();
+        // Retrieve the User entity from the database
+        $retrievedUser = $this->entityManager->getRepository(User::class)->find($user->getId());
 
-        // Create a mock for the User object
-        $user = $this->createMock(User::class);
-
-        // Configure the mock to return a specific ID
-
-        // Configure the cache mock to expect the 'get' method call
-        $cache->expects($this->once())
-            ->method('get')
-            ->with(
-                $this->equalTo($cacheKey),
-                $this->callback(function ($callback) use ($user) {
-                    // Simulate the cache storing the user if it's not found
-                    return $callback() === $user;
-                })
-            )
-            ->willReturn($user);
-        // Use the cache's get method to either retrieve or store the user
-        $retrievedUser = $cache->get($cacheKey, function () use ($user) {
-            return $user;
-        });
-
-        // Assert that the retrieved user is the same as the stored user
-        $this->assertSame($user, $retrievedUser);
-
+        // Assert that the retrieved user matches the persisted user
+        $this->assertEquals($user->getName(), $retrievedUser->getName());
+        $this->assertEquals($user->getEmail(), $retrievedUser->getEmail());
+        $this->assertEquals($user->getPassword(), $retrievedUser->getPassword());
+        $this->assertEquals($user->getRole(), $retrievedUser->getRole());
+        $this->assertEquals($user->getDeletionStatus(), $retrievedUser->getDeletionStatus());
     }
 }

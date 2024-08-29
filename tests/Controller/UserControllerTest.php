@@ -11,6 +11,7 @@ class UserControllerTest extends WebTestCase
     public function testAddNewUser()
     {
         $faker = Factory::create();
+        // for creating HTTP client instance
         $client = static::createClient();
         // Send a POST request to create a new user
         $client->request('POST', '/user', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([

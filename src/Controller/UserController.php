@@ -18,12 +18,14 @@ class UserController extends AbstractController
 {
     private UserService $userService;
     private BookService $bookService;
+    private BorrowService $borrowService;
     private BorrowRepository $borrowRepository;
 
     public function __construct(UserService $userService, BookService $bookService, BorrowService $borrowService, BorrowRepository $borrowRepository)
     {
         $this->userService = $userService;
         $this->bookService = $bookService;
+        $this->borrowService = $borrowService;
         $this->borrowRepository = $borrowRepository;
     }
     //  Create User controller
@@ -34,7 +36,10 @@ class UserController extends AbstractController
         //check wheter the variable is set or not
         try {
             if (!isset($data['name'], $data['email'], $data['role'], $data['password'])) {
-                throw new \Exception("Please input all values.");
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"Please input all values"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
             // Hashing the password
             $password = password_hash($data['password'], PASSWORD_BCRYPT);
@@ -43,37 +48,41 @@ class UserController extends AbstractController
 
             $user = $this->userService->createUser($data['name'], $data['email'], $password, $data['role']);
             if (!$user) {
-                throw new \Exception('User Not Created');
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"User not created"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
             // check role value    
             $validRoles = array_map(fn($role) => $role->value, Role::cases());
             if (!in_array($data['role'], $validRoles, true)) {
-                throw new \InvalidArgumentException('Invalid Role Value');
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"Please input all values"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // save user and check for exceptions
             $this->userService->saveUser($user);
-
             return new JsonResponse([
-                'status' => 'success',
-                'message' => 'User created successfully'
-            ], JsonResponse::HTTP_CREATED);
+                    'status' => 'success',
+                    'message' => 'User created successfully'
+                ], JsonResponse::HTTP_CREATED);
         } catch (UniqueConstraintViolationException $e) {
-
             return new JsonResponse([
-                'status' => 'error',
-                'message' => 'A User with this email already exists.'
-            ], JsonResponse::HTTP_CONFLICT);
+                    'status' => 'error',
+                    'message' => 'A User with this email already exists.'
+                ], JsonResponse::HTTP_CONFLICT);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], JsonResponse::HTTP_BAD_REQUEST);
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ], JsonResponse::HTTP_BAD_REQUEST);
         } catch (\Exception $e) {
             return new JsonResponse([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], JsonResponse::HTTP_BAD_REQUEST);
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 
@@ -84,7 +93,10 @@ class UserController extends AbstractController
         // check whether id is integer and positive value
         try {
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
-                throw new \InvalidArgumentException('Invalid ID provided.');
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"Invalid Id provided"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // get content
@@ -93,18 +105,27 @@ class UserController extends AbstractController
             // check if the user exist or not If exist the get user data by id
             $user = $this->userService->getUserById($id);
             if (!$user) {
-                throw new \Exception("User not found");
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"User not found"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // check variables exist or not
             if (!isset($data['name'], $data['email'], $data['role'], $data['password'])) {
-                throw new \Exception('Please Input all values.');
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"Please Input all values"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // check role value    
             $validRoles = array_map(fn($role) => $role->value, Role::cases());
             if (!in_array($data['role'], $validRoles, true)) {
-                throw new \InvalidArgumentException('Invalid Role Value');
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"Input role values"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // create user object using updateUser method
@@ -113,20 +134,20 @@ class UserController extends AbstractController
             $userData = $this->userService->updateUser($id, $data);
             $this->userService->saveUser($userData);
             return new JsonResponse([
-                "status" => "success",
-                "message" => "User Updated Successfully"
-            ], JsonResponse::HTTP_CREATED);
+                    "status" => "success",
+                    "message" => "User Updated Successfully"
+                ], JsonResponse::HTTP_CREATED);
         } catch (UniqueConstraintViolationException $e) {
 
             return new JsonResponse([
-                'status' => 'error',
-                'message' => 'A User with this email already exists.'
-            ], JsonResponse::HTTP_CONFLICT);
+                    'status' => 'error',
+                    'message' => 'A User with this email already exists.'
+                ], JsonResponse::HTTP_CONFLICT);
         } catch (\Exception $e) {
             return new JsonResponse([
-                "status" => "error",
-                "message" => $e->getMessage()
-            ], JsonResponse::HTTP_BAD_REQUEST);
+                    "status" => "error",
+                    "message" => $e->getMessage()
+                ], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 
@@ -161,12 +182,18 @@ class UserController extends AbstractController
         // check whether id is numeric and positive integer
         try {
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
-                throw new \InvalidArgumentException('Invalid ID provided.');
+                return new JsonResponse([
+                            'status'=> "error",
+                            "message"=>"Invalid Id provided"
+                        ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             $user = $this->userService->getUserById($id);
             if (!$user) {
-                throw new \Exception("User not Found");
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"User not found"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
         } catch (\Exception $e) {
             return new JsonResponse(["message" => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
@@ -190,13 +217,19 @@ class UserController extends AbstractController
         // check whether id is numeric and positive integer
         try {
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
-                throw new \InvalidArgumentException('Invalid ID provided.');
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"User not found"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // check wheter user exist or not
             $user = $this->userService->getUserById($id);
             if (empty($user)) {
-                throw new \Exception("User does not exist");
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"User does not exist"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             $user->setDeletionStatus(DeletionStatus::DELETED);
@@ -220,28 +253,43 @@ class UserController extends AbstractController
         // check bookid and userid to be integer and positive value
         try {
             if (!is_numeric($data['userid']) || intval($data['userid']) != $data['userid'] || $data['userid'] <= 0) {
-                throw new \InvalidArgumentException('Invalid User ID provided.');
+                    return new JsonResponse([
+                            'status'=> "error",
+                            "message"=>"Invalid User Id provided"
+                        ], JsonResponse::HTTP_BAD_REQUEST);
             }
             if (!is_numeric($data['bookid']) || intval($data['bookid']) != $data['bookid'] || $data['bookid'] <= 0) {
-                throw new \InvalidArgumentException('Invalid Book ID provided.');
+                    return new JsonResponse([
+                            'status'=> "error",
+                            "message"=>"Invalid Book Id provided"
+                        ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // getBookById check if the book exist or not
 
             $book = $this->bookService->getBookById($data['bookid']);
             if (!$book) {
-                throw new \Exception("Book not found");
+                return new JsonResponse([
+                    'status'=> "error",
+                    "message"=>"Book not found"
+                ], JsonResponse::HTTP_BAD_REQUEST);
             }
             // check if the user exist or not
 
             $user = $this->userService->getUserById($data['userid']);
             if (!$user) {
-                throw new \Exception("User not found");
+                return new JsonResponse([
+                    'status'=> "error",
+                    "message"=>"User not found"
+                ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // check if the book is already borrowed or not
             if ($book->getStatus()->value == "borrowed") {
-                throw new \Exception("Book Already Borrowed");
+                    return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"Book Aready Borrowed"
+                    ], JsonResponse::HTTP_BAD_REQUEST);
             }
         } catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
@@ -272,29 +320,39 @@ class UserController extends AbstractController
         // check bookid and userid to be integer and positive value
         try {
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
-                throw new \InvalidArgumentException('Invalid ID provided.');
+                return new JsonResponse([
+                    'status'=> "error",
+                    "message"=>"Invalid Id provided"
+                ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             // check if the borrow record exist or not
 
-            $borrow = $this->borrowRepository->find($id);
+            $borrow = $this->borrowService->getBorrowBookById($id);
+            // dd();
             if (!$borrow) {
                 return new JsonResponse([
                     'status' => 'error',
                     'message' => 'Borrow record not found'
                 ], JsonResponse::HTTP_NOT_FOUND);
             }
-
+            
             // Return Book logic
             $this->userService->returnBook($borrow);
-            $getBookId = $this->bookService->getBookById($borrow->getBookid()->getId());
+            $getBookId = $this->bookService->getBookById($borrow->getId());
             if (!($getBookId)) {
-                throw new \Exception("Book Not Found");
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"Book not found"
+                    ], JsonResponse::HTTP_NOT_FOUND);
             }
             // change status code
             $changeStatus = $this->bookService->changeBookStatus($getBookId);
             if (!($changeStatus)) {
-                throw new \Exception("Book Not Found");
+                return new JsonResponse([
+                        'status'=> "error",
+                        "message"=>"Book not found"
+                    ], JsonResponse::HTTP_NOT_FOUND);
             }
             return new JsonResponse([
                 'status' => 'success',

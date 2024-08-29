@@ -4,6 +4,7 @@ namespace App\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\BorrowRepository;
 use App\Service\UserService;
+use App\Entity\Borrow;
 use App\Service\BookService;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -28,5 +29,11 @@ class BorrowService
     public function getBorrowHistory(): array
     {
         return $this->borrowRepository->findAll();
+    }
+
+    // Method to get Borrow record by Id
+    public function getBorrowBookById(int $id): Borrow
+    {
+        return $this->borrowRepository->find($id);
     }
 }

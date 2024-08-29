@@ -117,7 +117,7 @@ class BookServiceTest extends TestCase
         // Mock the methods of the QueryBuilder
         $queryBuilder
             ->method('where')
-            ->with('b.status != :deletedStatus')
+            ->with("b.status != 'deleted'")
             ->willReturn($queryBuilder);
 
         $queryBuilder
@@ -141,9 +141,9 @@ class BookServiceTest extends TestCase
     public function testGetBookById(): void
     {
         $book = $this->createMock(Book::class);
-        $books = [$book];
+        $id = 1; // Make sure this is an integer if your actual code uses integer IDs
 
-        // Mock the QueryBuilder, Query
+        // Mock the QueryBuilder and Query
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $query = $this->createMock(\Doctrine\ORM\Query::class);
 
@@ -156,16 +156,12 @@ class BookServiceTest extends TestCase
         // Mock the chainable methods of the QueryBuilder
         $queryBuilder
             ->method('where')
-            ->with('b.id = :id')
+            ->with("b.id = $id")  // Adjusted to use direct value instead of parameter placeholder
             ->willReturn($queryBuilder);
 
         $queryBuilder
             ->method('andWhere')
-            ->with('b.status != :activeStatus')
-            ->willReturn($queryBuilder);
-
-        $queryBuilder
-            ->method('setParameter')
+            ->with("b.status != 'deleted'")
             ->willReturn($queryBuilder);
 
         $queryBuilder
@@ -177,9 +173,8 @@ class BookServiceTest extends TestCase
             ->method('getOneOrNullResult')
             ->willReturn($book);
 
-        $result = $this->bookService->getBookById(55);
+        $result = $this->bookService->getBookById($id);
 
         $this->assertSame($book, $result);
     }
-
 }

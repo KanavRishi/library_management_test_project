@@ -55,8 +55,7 @@ class BookService
     public function listBooks(): array
     {
         return $this->bookRepository->createQueryBuilder('b')
-            ->where('b.status != :deletedStatus')
-            ->setParameter('deletedStatus', 'deleted')
+            ->where("b.status != 'deleted'")
             ->getQuery()
             ->getResult();
     }
@@ -65,10 +64,8 @@ class BookService
     public function getBookById(int $id): ?Book
     {
         $book = $this->bookRepository->createQueryBuilder('b')
-            ->where('b.id = :id')
-            ->andWhere('b.status != :activeStatus')
-            ->setParameter('id', $id)
-            ->setParameter('activeStatus', 'deleted')
+            ->where('b.id = ' . $id)
+            ->andWhere("b.status != 'deleted'")
             ->getQuery()
             ->getOneOrNullResult();
         if (!$book) {

@@ -5,49 +5,69 @@ namespace App\Tests\Entity;
 use App\Entity\Borrow;
 use App\Entity\User;
 use App\Entity\Book;
-use Symfony\Contracts\Cache\CacheInterface;
-use PHPUnit\Framework\TestCase;
+use App\ValueObject\Title;
+use App\ValueObject\Author;
+use App\ValueObject\Isbn;
+use App\ValueObject\Name;
+use App\ValueObject\Email;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Faker\Factory;
 
-class BorrowTest extends TestCase
+class BorrowTest extends KernelTestCase
 {
-    public function testBorrowEntity()
+    private ?EntityManagerInterface $entityManager = null;
+
+    protected function setUp(): void
     {
-        $cache = $this->createMock(CacheInterface::class);
+        self::bootKernel();
+        $this->entityManager = static::$kernel->getContainer()->get("doctrine")->getManager();
+    }
+    
+    public function tearDown(): void
+    {
+        parent::tearDown();
 
-        // Set up Borrow entity
+        $this->entityManager->close();
+        $this->entityManager = null;
+    }
+
+    public function testBorrowEntity(): void
+    {
+        $faker = Factory::create();
+
+        // Create User and Book objects
+        $name = new Name("Kanav Rishi");
+        $email = new Email($faker->email());
+        $password = 'password123';
+        $user = new User($name, $email, $password);
+
+        $title = new Title("The Dark Knight Rises");
+        $author = new Author("KanavR");
+        $isbn = new Isbn($faker->isbn13());
+        $publishedDate = new \DateTime('1995-03-10');
+        $book = new Book($author, $title, $isbn, $publishedDate);
+
+        // Persist and flush the entities to the database
+        $this->entityManager->persist($user);
+        $this->entityManager->persist($book);
+        $this->entityManager->flush();
+
+        // Create a Borrow object
         $borrow = new Borrow();
-
-        $user = $this->createMock(User::class);
         $borrow->setUserid($user);
-        $this->assertSame($user, $borrow->getUserid());
-
-        $book = $this->createMock(Book::class);
         $borrow->setBookid($book);
-        $this->assertSame($book, $borrow->getBookid());
+        $borrow->setBorrowDate(new \DateTime());
 
-        $borrowDate = new \DateTime('2024-08-01 10:00:00');
-        $borrow->setBorrowDate($borrowDate);
-        $this->assertSame($borrowDate, $borrow->getBorrowDate());
+        $this->entityManager->persist($borrow);
+        $this->entityManager->flush();
 
-        $returnDate = new \DateTime('2024-08-10 10:00:00');
-        $borrow->setReturnDate($returnDate);
-        $this->assertSame($returnDate, $borrow->getReturnDate());
+        // Retrieve the Borrow entity from the database
+        $retrievedBorrow = $this->entityManager->getRepository(Borrow::class)->find($borrow->getId());
 
-        $borrow->updatedTimestamps();
-        $this->assertNotNull($borrow->getBorrowDate());
-        $this->assertNotNull($borrow->getReturnDate());
-
-        // Store Borrow entity in cache
-        $cacheKey = 'borrow_' . $borrow->getUserid()->getId() . '_' . $borrow->getBookid()->getId();
-        $cache->expects($this->once())
-            ->method('get')
-            ->with($cacheKey)
-            ->willReturn($borrow);
-
-        // Retrieve from cache and assert
-        $cachedBorrow = $cache->get($cacheKey, function () use ($borrow) {
-            return $borrow;
-        });
-        $this->assertSame($borrow, $cachedBorrow);
+        // Assert that the retrieved entity is the same as the stored one
+        $this->assertEquals($borrow->getUserid()->getName(), $retrievedBorrow->getUserid()->getName());
+        $this->assertEquals($borrow->getBookid()->getTitle(), $retrievedBorrow->getBookid()->getTitle());
+        $this->assertEquals($borrow->getBorrowDate(), $retrievedBorrow->getBorrowDate());
     }
 }

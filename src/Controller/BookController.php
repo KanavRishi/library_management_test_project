@@ -11,19 +11,16 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use App\Service\BookService;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 
 class BookController extends AbstractController
 {
     private BookService $bookService;
-    private LoggerInterface $logger;
 
     // Intialize bookService and logger
-    public function __construct(BookService $bookService, LoggerInterface $logger)
+    public function __construct(BookService $bookService)
     {
         $this->bookService = $bookService;
-        $this->logger = $logger;
     }
 
     // Add Book 
@@ -36,20 +33,26 @@ class BookController extends AbstractController
             // Validate status
             $validStatuses = array_map(fn($status) => $status->value, Status::cases());
             if (!in_array($data['status'], $validStatuses, true)) {
-                throw new \InvalidArgumentException('Invalid Status Value');
+                return new JsonResponse([
+                    'status' => $data['status'],
+                    "message" => "Invalid Status Valid"
+                ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
             if (
-                !isset($data['title']) || !isset($data['author']) || !isset($data['isbn']) || !isset($data['status'])
-                || !isset($data['publisheddate'])
+                !isset($data['title']) || !isset($data['author']) || !isset($data['isbn'])
+                || !isset($data['status']) || !isset($data['publisheddate'])
             ) {
-                throw new \Exception('Please Input all fields');
+                return new JsonResponse([
+                    'status' => $data['status'],
+                    "message" => "Please input all fields"
+                ], Response::HTTP_BAD_REQUEST);
             }
 
-            // Proceed with creating and saving the book and validations
-
+            // Creating and Saving the book and validations
             $publishedDate = new \DateTime($data['publisheddate']);
             $status = Status::from($data['status']);
+
             // Create and save the book using the service
             $book = $this->bookService->createBook(
                 $data['author'],
@@ -58,32 +61,26 @@ class BookController extends AbstractController
                 $data['status'],
                 $publishedDate
             );
+            // Save Book Logic
             $this->bookService->saveBook($book);
-
             return new JsonResponse([
                 'status' => 'success',
                 'message' => 'Book added successfully!',
             ], JsonResponse::HTTP_CREATED);
-
         } catch (UniqueConstraintViolationException $e) {
             // Handle unique constraint violations
-            $this->logger->error('Duplicate entry error: ' . $e->getMessage());
-
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'A book with this ISBN already exists.',
             ], JsonResponse::HTTP_CONFLICT);
-
         } catch (\InvalidArgumentException $e) {
             // Validation for other unexpected errors
-            $this->logger->error('Unexpected error: ' . $e->getMessage());
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
             ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         } catch (\Exception $e) {
             // Validation for other unexpected errors
-            $this->logger->error('Unexpected error: ' . $e->getMessage());
             return new JsonResponse([
                 'status' => 'error',
                 'message' => 'An unexpected error occurred: ' . $e->getMessage(),
@@ -98,33 +95,48 @@ class BookController extends AbstractController
         try {
             // Validate ID
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
-                throw new \InvalidArgumentException('Invalid ID provided.');
+                return new JsonResponse([
+                    'status' => 'error',
+                    "message" => "Invalid ID Provided"
+                ], Response::HTTP_BAD_REQUEST);
             }
 
             // Get Book by ID
             $checkBook = $this->bookService->getBookById($id);
             if (empty($checkBook)) {
-                throw new \Exception('Book does not exist.');
+                return new JsonResponse([
+                    "status" => "error",
+                    "message" => "Book does not exist"
+                ], Response::HTTP_BAD_REQUEST);
             }
 
             // Decode request data
             $data = json_decode($request->getContent(), true);
             if ($data === null) {
-                throw new \InvalidArgumentException('Invalid request data.');
+                return new JsonResponse([
+                    "status" => "error",
+                    "message" => "Invalid Request Data"
+                ], Response::HTTP_BAD_REQUEST);
             }
 
             // Validate required fields
             $requiredFields = ['title', 'author', 'isbn', 'status', 'publisheddate'];
             foreach ($requiredFields as $field) {
                 if (!isset($data[$field])) {
-                    throw new \InvalidArgumentException("Missing field: $field.");
+                    return new JsonResponse([
+                        'status' => 'error',
+                        "message" => "Missing field: $field."
+                    ], Response::HTTP_BAD_REQUEST);
                 }
             }
 
             // Validate Status
             $validStatuses = array_map(fn($status) => $status->value, Status::cases());
             if (!in_array($data['status'], $validStatuses, true)) {
-                throw new \InvalidArgumentException('Invalid Status Value');
+                return new JsonResponse([
+                    'status' => 'error',
+                    "message" => "Invalid Status Value"
+                ], Response::HTTP_BAD_REQUEST);
             }
 
             // Validate Published Date
@@ -138,13 +150,11 @@ class BookController extends AbstractController
                 'status' => 'success',
                 'message' => 'Book updated successfully.',
             ], JsonResponse::HTTP_OK);
-
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
-
         } catch (\Exception $e) {
             return new JsonResponse([
                 'status' => 'error',
@@ -182,20 +192,21 @@ class BookController extends AbstractController
 
     // Get Book by Id
     #[Route('/book/{id}/', methods: ['GET'])]
-    public function getBookById(int $id): JsonResponse
+    public function getBookById($id): JsonResponse
     {
         // id should be numeric and positive integer
         try {
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
-                throw new \InvalidArgumentException('Invalid ID provided.');
+                return new JsonResponse([
+                    'status' => 'error',
+                    "message" => "Invalid ID Provided"
+                ], Response::HTTP_BAD_REQUEST);
             }
-
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse([
                 'status' => 'error',
                 'message' => $e->getMessage(),
             ], JsonResponse::HTTP_BAD_REQUEST);
-
         }
         // check whether book exist or not
         $book = $this->bookService->getBookById($id);
@@ -222,26 +233,32 @@ class BookController extends AbstractController
     #[Route('/book/delete/{id}', methods: ['DELETE'])]
     public function deleteBook($id): JsonResponse
     {
-        // id should be numeric and positive integer
         try {
+            // id should be numeric and positive integer
             if (!is_numeric($id) || intval($id) != $id || $id <= 0) {
-                throw new \InvalidArgumentException('Invalid ID provided.');
+                return new JsonResponse([
+                    'status' => 'error',
+                    'message' => 'Invalid Id provided'
+                ], JsonResponse::HTTP_BAD_REQUEST);
             }
-            // get book by id 
 
+            // get book by id 
             $book = $this->bookService->getBookById($id);
             if (empty($book)) {
-                throw new \Exception("Book does not exist");
+                return new JsonResponse([
+                    'status' => 'error',
+                    'message' => 'Book does not exist'
+                ], JsonResponse::HTTP_BAD_REQUEST);
             }
-
             $book->setStatus(Status::DELETED);
 
             // Update status to deleted
-
             $this->bookService->saveBook($book);
             return new JsonResponse(["message" => "Book Deleted Successfully:"], JsonResponse::HTTP_OK);
         } catch (ValidatorException $e) {
-            return new JsonResponse(["message" => "Unexpected Error:" . $e->getMessage()], JsonResponse::HTTP_CONFLICT);
+            return new JsonResponse([
+                "message" => "Unexpected Error:" . $e->getMessage()
+                ],JsonResponse::HTTP_CONFLICT);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse([
                 'status' => 'error',
