@@ -125,4 +125,3 @@ class UserControllerTest extends WebTestCase
         $this->assertJson($client->getResponse()->getContent());
     }
 }
-?>
